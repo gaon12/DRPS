@@ -1,0 +1,30 @@
+# nodejs
+## nodejs 패키지 폴더
+backend/nodejs/node_modules/
+
+## nodejs .env 파일(sample 파일 있음)
+backend/nodejs/.env
+
+## nodejs db 정보 파일(sample 파일 있음)
+backend/nodejs/db/db_config.js
+
+# php
+## composer 관련 폴더 및 파일
+backend/php/vendor/
+backend/php/composer.json
+backend/php/composer.lock
+
+## php .env 파일(sample 파일 있음)
+backend/php/.env
+
+# php db 정보 파일(sample 파일 있음)
+backend/php/db/db_config_sample.php
+
+# python
+## python .env 파일(sample 파일 있음)
+backend/php/.env
+
+# python Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class

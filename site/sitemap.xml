@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>None./</loc>
+        <lastmod>2024-06-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="Noneko/"/>
+    </url>
+    <url>
+        <loc>Nonebackend/</loc>
+        <lastmod>2024-06-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonebackend/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="Noneko/backend/"/>
+    </url>
+    <url>
+        <loc>Nonebackend/routes/ai/detect_malcomment_v1/</loc>
+        <lastmod>2024-06-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonebackend/routes/ai/detect_malcomment_v1/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="Noneko/backend/routes/ai/detect_malcomment_v1/"/>
+    </url>
+    <url>
+        <loc>Nonebackend/routes/disaster_msg/</loc>
+        <lastmod>2024-06-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonebackend/routes/disaster_msg/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="Noneko/backend/routes/disaster_msg/"/>
+    </url>
+    <url>
+        <loc>Nonebackend/routes/ping/</loc>
+        <lastmod>2024-06-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonebackend/routes/ping/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="Noneko/backend/routes/ping/"/>
+    </url>
+    <url>
+        <loc>Nonebackend/routes/version/</loc>
+        <lastmod>2024-06-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonebackend/routes/version/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="Noneko/backend/routes/version/"/>
+    </url>
+    <url>
+        <loc>Nonebackend/sql/</loc>
+        <lastmod>2024-06-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonebackend/sql/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="Noneko/backend/sql/"/>
+    </url>
+    <url>
+        <loc>Noneko/</loc>
+        <lastmod>2024-06-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="Noneko/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="None"/>
+    </url>
+    <url>
+        <loc>Noneko/backend/</loc>
+        <lastmod>2024-06-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="Noneko/backend/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonebackend/"/>
+    </url>
+    <url>
+        <loc>Noneko/backend/routes/ai/detect_malcomment_v1/</loc>
+        <lastmod>2024-06-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="Noneko/backend/routes/ai/detect_malcomment_v1/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonebackend/routes/ai/detect_malcomment_v1/"/>
+    </url>
+    <url>
+        <loc>Noneko/backend/routes/disaster_msg/</loc>
+        <lastmod>2024-06-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="Noneko/backend/routes/disaster_msg/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonebackend/routes/disaster_msg/"/>
+    </url>
+    <url>
+        <loc>Noneko/backend/routes/ping/</loc>
+        <lastmod>2024-06-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="Noneko/backend/routes/ping/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonebackend/routes/ping/"/>
+    </url>
+    <url>
+        <loc>Noneko/backend/routes/version/</loc>
+        <lastmod>2024-06-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="Noneko/backend/routes/version/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonebackend/routes/version/"/>
+    </url>
+    <url>
+        <loc>Noneko/backend/sql/</loc>
+        <lastmod>2024-06-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="Noneko/backend/sql/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonebackend/sql/"/>
+    </url>
+</urlset>
