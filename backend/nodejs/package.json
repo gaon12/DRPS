@@ -1,0 +1,36 @@
+{
+  "name": "drps",
+  "version": "1.0.0",
+  "description": "Disaster Response Preparedness System",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon",
+    "prod": "pm2 start ecosystem.config.js --env production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gaon12/DRPS.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gaon12/DRPS/issues"
+  },
+  "homepage": "https://github.com/gaon12/DRPS#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "js-yaml": "^4.1.0",
+    "mysql2": "^3.10.1",
+    "pm2": "^5.4.1",
+    "toml": "^3.0.0",
+    "tomlify-j0.4": "^3.0.0",
+    "xmlbuilder": "^15.1.1"
+  }
+}
