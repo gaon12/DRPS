@@ -1,0 +1,20 @@
+CREATE TABLE EarthquakeShelters (
+    arcd VARCHAR(20),
+    acmdfclty_sn INT,
+    ctprvn_nm VARCHAR(50),
+    sgg_nm VARCHAR(50),
+    vt_acmdfclty_nm VARCHAR(100),
+    rdnmadr_cd VARCHAR(50),
+    bdong_cd VARCHAR(20),
+    hdong_cd VARCHAR(20),
+    dtl_adres VARCHAR(200),
+    fclty_ar FLOAT,
+    lat FLOAT,
+    lon FLOAT,
+    mngps_nm VARCHAR(100),
+    mngps_telno VARCHAR(20),
+    vt_acmd_psbl_nmpr INT,
+    acmdfclty_se_nm VARCHAR(50),
+    rn_adres VARCHAR(200),
+    PRIMARY KEY (arcd, acmdfclty_sn)
+);
