@@ -1,0 +1,20 @@
+CREATE TABLE CivilDefenseShelters (
+    management_number VARCHAR(255) NOT NULL,
+    designation_date DATE NOT NULL,
+    release_date DATE NULL,
+    operational_status VARCHAR(255) NOT NULL,
+    facility_name VARCHAR(255) NOT NULL,
+    facility_type VARCHAR(255) NOT NULL,
+    road_address VARCHAR(255) NULL,
+    full_address VARCHAR(255) NOT NULL,
+    postal_code VARCHAR(10) NULL,
+    location VARCHAR(10) NULL,
+    facility_area DECIMAL(10,2) NULL,
+    max_capacity INT NULL,
+    last_updated TIMESTAMP NULL,
+    data_update_type VARCHAR(2) NULL,
+    data_update_date DATE NOT NULL,
+    lat DECIMAL(17,14) NULL,
+    lon DECIMAL(17,14) NULL,
+    PRIMARY KEY (management_number)
+);
