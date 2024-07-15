@@ -1,0 +1,58 @@
+meta {
+  name: ping
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:5000/ping
+  body: none
+  auth: none
+}
+
+headers {
+  Origin: *
+}
+
+docs {
+  # 서버 연결 확인
+  `/ping` 경로는 서버 연결 확인을 위한 라우트 경로입니다. 서비스 접속 시, 먼저 연결 여부를 확인하거나, [서버 업타임](../../../uptime/index.md) 확인 시, 본 라우트 경로에 연결 요청을 보냅니다.
+  
+  ## 요청
+  |HTTP|
+  |--|
+  | `GET` / `POST` http://{address}:{port}/ping|
+  
+  ### 요청 바디
+  |필드명|필수 여부|타입|설명|
+  |--|--|--|--|
+  | `없음` | `없음` | `없음` | `없음` |
+  
+  ### 응답
+  #### 응답 바디
+  |필드 이름|데이터 타입|설명|
+  |--|--|--|
+  |`StatusCode`|`Int`|상태 코드|
+  |`message`|`String`|응답 메시지|
+  |`RequestTime`|`String`|요청 시간|
+  
+  * `format` 파라미터를 제외한 어떠한 파라미터값을 붙히더라도, 출력에는 영향이 없습니다.
+  * `GET` 요청 결과와 `POST` 요청 결과 모두 동일합니다.
+  
+  ### 요청 예시
+  ```url
+  http://{address}:{port}/ping
+  ```
+  
+  ### 응답 예시
+  ```JSON
+  {
+    "StatusCode": 200,
+    "message": "Pong!",
+    "RequestTime": "2024-06-22T02:54:31.373Z"
+  }
+  ```
+  
+  ### 오류
+  오류 메시지는 따로 없습니다.
+}

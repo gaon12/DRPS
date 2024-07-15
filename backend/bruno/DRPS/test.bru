@@ -1,0 +1,19 @@
+meta {
+  name: test
+  type: http
+  seq: 7
+}
+
+get {
+  url: http://localhost:5000/ai/disaster_msg_category_classification?text=오늘 12시경 영등포동3가 일대 일부 정전 발생. 현재 복구 작업 중으로 안전사고 발생에 유의하시기 바랍니다.
+  body: none
+  auth: none
+}
+
+query {
+  text: 오늘 12시경 영등포동3가 일대 일부 정전 발생. 현재 복구 작업 중으로 안전사고 발생에 유의하시기 바랍니다.
+}
+
+headers {
+  Origin: *
+}

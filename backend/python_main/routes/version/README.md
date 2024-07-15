@@ -4,7 +4,7 @@
 ## 요청
 |HTTP|
 |--|
-| `GET` / `POST` http://{address}:{port}/version|
+| `GET` / `POST` http://{address}:{port}/version |
 
 ### 요청 바디
 |필드명|필수 여부|타입|설명|
@@ -17,14 +17,19 @@
 |--|--|--|
 |`StatusCode`|`Int`|상태 코드|
 |`message`|`String`|응답 메시지|
-|`RequestTime`|`String`|요청 시간|
+| `data`  | `Object`    | 버전 정보가 담긴 객체 |
+| `data > latest_version` | `String`    | 최신 버전명 |
+| `data > latest_version_codename` | `String`    | 최신 버전의 코드네임 |
+| `data > latest_version_sentence` | `String`    | 최신 버전의 코드문장 |
+| `data > mandatory_update_version` | `Array`    | 반드시 업데이트 해야 하는 버전 배열 |
+| `data > recommended_update_version` | `Array`    | 업데이트를 권장하는 버전 배열 |
 
 * `format` 파라미터를 제외한 어떠한 파라미터값을 붙히더라도, 출력에는 영향이 없습니다.
 * `GET` 요청 결과와 `POST` 요청 결과 모두 동일합니다.
 
 ### 요청 예시
 ```url
-http://{address}:{port}/ping
+http://{address}:{port}/version
 ```
 
 ### 응답 예시
@@ -33,19 +38,21 @@ http://{address}:{port}/ping
   "StatusCode": 200,
   "message": "Success to get Version info",
   "data": {
-    "version": "0.0.1-beta"
-  },
-  "RequestTime": "2024-07-03T16:27:42.737718"
+    "latest_version": "0.0.1-alpha",
+    "latest_version_codename": "Self-Confidence",
+    "latest_version_sentence": "할 수 있다는 믿음!",
+    "mandatory_update_version": [],
+    "recommended_update_version": []
+  }
 }
 ```
 
 ### 오류
-#### version.txt 미존재
+#### version.json 미존재
 ```json
 {
   "StatusCode": 404,
-  "message": "version.txt file does not exist.",
-  "RequestTime": "2024-07-03T16:18:51.750646"
+  "message": "version.json file does not exist."
 }
 ```
 
@@ -53,7 +60,6 @@ http://{address}:{port}/ping
 ```json
 {
   "StatusCode": 400,
-  "message": "version.txt file is empty.",
-  "RequestTime": "2024-07-03T16:27:23.267492"
+  "message": "version.json file is empty."
 }
 ```
