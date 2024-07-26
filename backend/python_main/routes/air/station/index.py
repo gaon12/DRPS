@@ -1,3 +1,4 @@
+# routes/air/station/index.py
 import mysql.connector
 from mysql.connector import Error
 from datetime import datetime, date
@@ -19,7 +20,7 @@ def connect_to_database():
         connection = mysql.connector.connect(**get_db_config())
         if connection.is_connected():
             return connection
-    except Error:
+    except Error as e:
         return None
 
 # 쿼리 실행 함수
@@ -30,17 +31,19 @@ def execute_query(connection, query, params=None):
         results = cursor.fetchall()  # 결과 가져오기
         cursor.close()
         return results
-    except Error:
+    except Error as e:
         return None
 
 # 응답 형식화 함수
-def format_response(status_code, message, data=None):
+def format_response(status_code, message, data=None, include_notice=True):
     response = {
         "statusCode": status_code,
         "message": html.escape(message)  # 메시지 HTML 이스케이프 처리
     }
     if data is not None and data:
         response["data"] = data
+    if include_notice:
+        response["notice"] = "라이선스: 공공누리 제 2유형(https://www.data.go.kr/data/15073877/openapi.do) / 데이터 오류가능성 존재"
     return response
 
 # 거리 계산 함수 (위도와 경도를 이용한 두 지점 사이의 거리)
@@ -68,8 +71,8 @@ def serialize_data(data):
 def filter_and_sort_stations(stations, lat, lon, distance):
     filtered_stations = []
     for station in stations:
-        station_lat = station.get('dmY')
-        station_lon = station.get('dmX')
+        station_lat = station.get('dmX')  # dmX를 위도로 사용
+        station_lon = station.get('dmY')  # dmY를 경도로 사용
         if station_lat is None or station_lon is None:
             continue
         try:
@@ -123,6 +126,9 @@ async def process_request(params):
             lat = float(lat)
             lon = float(lon)
             distance = float(distance)
+            # distance 값의 범위 검증 및 조정 (예: 1km에서 10km, 범위 벗어나면 5로 설정)
+            if distance < 1 or distance > 10:
+                distance = 5
         except ValueError:
             connection.close()
             return format_response(400, "Invalid latitude, longitude, or distance format"), 400
@@ -131,12 +137,15 @@ async def process_request(params):
         results = execute_query(connection, query)
         if results:
             filtered_stations = filter_and_sort_stations(results, lat, lon, distance)
+            if not filtered_stations:
+                connection.close()
+                return format_response(404, "No data found.", include_notice=False), 404
             paginated_results = filtered_stations[(pageno-1)*5:pageno*5]
             connection.close()
             return format_response(200, "Stations found.", paginated_results), 200
         else:
             connection.close()
-            return format_response(404, "No stations found."), 404
+            return format_response(404, "No data found.", include_notice=False), 404
     # 측정망 이름 기반 검색
     elif measurenet:
         query += " WHERE mangName = %s"
@@ -159,7 +168,7 @@ async def process_request(params):
                 result[key] = serialize_data(result[key])
         return format_response(200, "Stations found.", paginated_results), 200
     else:
-        return format_response(404, "No stations found."), 404
+        return format_response(404, "No data found.", include_notice=False), 404
 
 # GET 요청 처리 함수
 async def get_response(params):
