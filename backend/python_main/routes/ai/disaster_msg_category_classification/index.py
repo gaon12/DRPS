@@ -1,4 +1,4 @@
-# routes/ping/index.py
+# routes/ai/disaster_msg_category_classification/index.py
 
 import os
 import torch
@@ -13,7 +13,7 @@ model_path = os.path.join(current_dir, 'best_model.pt')
 model_name = 'monologg/koelectra-base-v3-discriminator'
 tokenizer = ElectraTokenizer.from_pretrained(model_name)
 model = ElectraForSequenceClassification.from_pretrained(model_name, num_labels=33)  # num_labels는 학습 시 설정과 동일해야 합니다.
-model.load_state_dict(torch.load(model_path))
+model.load_state_dict(torch.load(model_path), strict=False)
 model.eval()
 
 # LabelEncoder 로드

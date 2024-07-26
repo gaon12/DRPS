@@ -15,6 +15,10 @@ import time
 from datetime import datetime
 from asgiref.wsgi import WsgiToAsgi
 from ast import literal_eval
+import logging
+
+# 로그 설정
+logging.basicConfig(level=logging.DEBUG)
 
 # 환경변수 파일(.env) 로드
 load_dotenv()
@@ -75,22 +79,35 @@ async def handle_request(endpoint_path, method):
     
     try:
         module = importlib.import_module(module_path)
-    except ImportError:
+    except ImportError as e:
+        error_message = f"ImportError: {e}"
+        print(error_message)  # 콘솔 출력
+        logging.error(error_message)  # 로그 출력
         return response_format({"error": "Endpoint not found"}, 404, content_type)
 
     response_function = find_response_function(module, method)
     
     if response_function is None:
-        return response_format({"error": f"Method {method} not supported for this endpoint"}, 405, content_type)
+        error_message = f"Method {method} not supported for this endpoint"
+        print(error_message)  # 콘솔 출력
+        logging.error(error_message)  # 로그 출력
+        return response_format({"error": error_message}, 405, content_type)
 
     if method == 'GET':
         request_params = request.args.to_dict()
+        print(f"Received GET request with params: {request_params}")  # 콘솔 출력
+        logging.debug(f"Received GET request with params: {request_params}")  # 로그 출력
         data, status_code = await response_function(request_params)
     else:  # POST
         try:
             request_data = request.get_json()
-        except Exception:
+        except Exception as e:
             request_data = None
+            error_message = f"Error parsing JSON: {e}"
+            print(error_message)  # 콘솔 출력
+            logging.error(error_message)  # 로그 출력
+        print(f"Received POST request with data: {request_data}")  # 콘솔 출력
+        logging.debug(f"Received POST request with data: {request_data}")  # 로그 출력
         data, status_code = await response_function(request_data)
 
     # Add request time to the response data
@@ -104,10 +121,21 @@ async def handle_request(endpoint_path, method):
 async def ping():
     return await handle_request('/ping', request.method)
 
+#########################
+#                       #
+#         버전          #
+#                       #
+#########################
+
 # 버전 확인
 @app.route('/version', methods=['GET', 'POST'])
 async def version():
     return await handle_request('/version', request.method)
+
+# 버전 정보 반환
+@app.route('/version/info', methods=['GET', 'POST'])
+async def version_info():
+    return await handle_request('/version/info', request.method)
 
 # 재난문자 검색
 @app.route('/disaster_msg', methods=['GET', 'POST'])
@@ -142,8 +170,22 @@ async def trans_gtran():
 
 #########################
 #                       #
-#       AI 기능         #
+#       미세먼지        #
+#########################
+
+# 미세먼지 정보 반환
+@app.route('/air/quality', methods=['GET', 'POST'])
+async def air_quality():
+    return await handle_request('/air/quality', request.method)
+
+# 미세먼지 측정소
+@app.route('/air/station', methods=['GET', 'POST'])
+async def air_station():
+    return await handle_request('/air/station', request.method)
+
+#########################
 #                       #
+#       AI 기능         #
 #########################
 
 # 재난문자 분류 AI
@@ -159,22 +201,29 @@ async def ai_detect_malcomment_v1():
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     
+    from hypercorn.asyncio import serve
+    from hypercorn.config import Config
+
+    config = Config()
+    config.bind = [f"0.0.0.0:{port}"]
+    config.alpn_protocols = ["h2", "http/1.1"]
+
+    asgi_app = WsgiToAsgi(app)
+    
     if platform.system() == 'Windows':
-        import uvicorn
-        asgi_app = WsgiToAsgi(app)
-        uvicorn.run(asgi_app, host="0.0.0.0", port=port)
+        import asyncio
+        asyncio.run(serve(asgi_app, config))
     else:
-        # Unix 계열 (Linux, macOS)에서는 gunicorn 사용
         class RestartOnChangeHandler(FileSystemEventHandler):
             def __init__(self, process):
                 self.process = process
 
             def on_any_event(self, event):
                 self.process.terminate()
-                self.process = Popen(['gunicorn', '--bind', f'0.0.0.0:{port}', 'app:app'])
+                self.process = Popen(['hypercorn', '--bind', f'0.0.0.0:{port}', 'app:app'])
 
         from subprocess import Popen
-        process = Popen(['gunicorn', '--bind', f'0.0.0.0:{port}', 'app:app'])
+        process = Popen(['hypercorn', '--bind', f'0.0.0.0:{port}', 'app:app'])
         
         event_handler = RestartOnChangeHandler(process)
         observer = Observer()
