@@ -1,0 +1,13 @@
+{
+  "welcome": "환영합니다",
+  "error": "오류",
+  "internet_not_available": "인터넷 연결을 사용할 수 없습니다.",
+  "update_available": "앱의 새 버전이 있습니다. 업데이트 해주세요.",
+  "version_check_failed": "앱 버전 확인에 실패했습니다.",
+  "system_time_warning": "시스템 시간이 서버 시간과 크게 다릅니다.",
+  "Home": "홈",
+  "Resources": "자료",
+  "Tips": "팁",
+  "Alert": "알림",
+  "Settings": "설정"
+}
