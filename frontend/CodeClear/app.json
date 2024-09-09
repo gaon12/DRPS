@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "CodeClear",
+    "slug": "CodeClear",
+    "version": "1.0.0",
+    "plugins": [
+      "expo-secure-store"
+    ],
+    "splash": {
+      "image": "./img/splash/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#fcfafb"
+    }
+  }
+}
