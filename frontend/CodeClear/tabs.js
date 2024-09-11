@@ -1,7 +1,8 @@
-import * as React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { useContext } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { SettingsContext } from './Context'; // Context 불러오기
 
 // Import your screens
 import HomeScreen from './tabs/Home';
@@ -13,8 +14,11 @@ import SettingsScreen from './tabs/Settings';
 const Tab = createBottomTabNavigator();
 
 export default function App() {
+	const { settings } = useContext(SettingsContext); // Context에서 설정값 가져오기
+
 	return (
 		<Tab.Navigator
+			theme={settings.isDarkMode ? DarkTheme : DefaultTheme}
 			screenOptions={({ route }) => ({
 				tabBarIcon: ({ focused, color, size }) => {
 					let iconName;
@@ -35,6 +39,10 @@ export default function App() {
 				},
 				tabBarActiveTintColor: 'tomato',
 				tabBarInactiveTintColor: 'gray',
+				tabBarStyle: {
+					backgroundColor: settings.isDarkMode ? '#121212' : '#fff',
+					borderTopColor: settings.isDarkMode ? '#121212' : '#e0e0e0', // Set border color based on theme
+				},
 			})}
 		>
 			<Tab.Screen name="Home" component={HomeScreen} />

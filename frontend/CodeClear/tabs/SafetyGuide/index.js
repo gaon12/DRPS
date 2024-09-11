@@ -1,10 +1,64 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { Card, Title, Paragraph } from 'react-native-paper';
+import Ionicons from '@expo/vector-icons/Ionicons'; // 아이콘 패키지 가져오기
 
-export default function SafetyGuideScreen() {
+const ActionGuidelines = ({ navigation }) => {
+  const guidelines = [
+    {
+      id: 1,
+      title: '자연 재난',
+      description: '지진, 홍수 등 자연 재난에 대한 국민행동요령',
+      backgroundColor: '#B0E0E6',
+      icon: 'earth-outline', 
+      screen: 'NaturalDisasters', // 연결할 스크린
+    },
+    {
+      id: 2,
+      title: '사회 재난',
+      description: '화재, 산업재해 등 사회 재난에 대한 국민행동요령',
+      backgroundColor: '#FFD700',
+      icon: 'alert-circle-outline',
+      screen: 'SocialDisasters', 
+    },
+    {
+      id: 3,
+      title: '생활 재난',
+      description: '폭염, 한파 등 생활 재난에 대한 국민행동요령',
+      backgroundColor: '#98FB98',
+      icon: 'sunny-outline',
+      screen: 'LifeDisasters', 
+    },
+    {
+      id: 4,
+      title: '비상 재난',
+      description: '테러, 전쟁 등 비상 재난에 대한 국민행동요령',
+      backgroundColor: '#FFB6C1',
+      icon: 'medical-outline',
+      screen: 'EmergencyDisasters', 
+    },
+  ];
+
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Home Screen</Text>
-    </View>
+    <ScrollView style={{ padding: 10 }}>
+      {guidelines.map((guideline) => (
+        <TouchableOpacity
+          key={guideline.id}
+          onPress={() => navigation.navigate(guideline.screen)}
+        >
+          <Card style={{ marginVertical: 10, backgroundColor: guideline.backgroundColor }}>
+            <Card.Content style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name={guideline.icon} size={30} color="black" style={{ marginRight: 10 }} />
+              <View>
+                <Title style={{ fontWeight: 'bold' }}>{guideline.title}</Title>
+                <Paragraph>{guideline.description}</Paragraph>
+              </View>
+            </Card.Content>
+          </Card>
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
   );
-}
+};
+
+export default ActionGuidelines;
