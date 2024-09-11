@@ -6,60 +6,60 @@ export const SettingsContext = createContext();
 
 // Provider 컴포넌트
 export const SettingsProvider = ({ children }) => {
-  const [settings, setSettings] = useState({
-    isDarkMode: false,  // 다크모드 설정
-    language: 'en',     // 언어 설정
-    notifications: true, // 알림 설정
-    webviewUsage: true  // 웹뷰 사용 설정
-  });
+	const [settings, setSettings] = useState({
+		isDarkMode: false,  // 다크모드 설정
+		language: 'en',     // 언어 설정
+		notifications: true, // 알림 설정
+		webviewUsage: true  // 웹뷰 사용 설정
+	});
 
-  // SecureStore에서 설정값을 불러오는 함수
-  const loadSettings = async () => {
-    try {
-      const savedSettings = await Promise.all([
-        SecureStore.getItemAsync('Settings_DarkMode'),
-        SecureStore.getItemAsync('Settings_Language'),
-        SecureStore.getItemAsync('Settings_Notifications'),
-        SecureStore.getItemAsync('Settings_WebviewUsage')
-      ]);
+	// SecureStore에서 설정값을 불러오는 함수
+	const loadSettings = async () => {
+		try {
+			// SecureStore에서 설정값 불러오기
+			const savedDarkMode = await SecureStore.getItemAsync('Settings_DarkMode');
+			const savedLanguage = await SecureStore.getItemAsync('Settings_Language');
+			const savedNotifications = await SecureStore.getItemAsync('Settings_Notifications');
+			const savedWebviewUsage = await SecureStore.getItemAsync('Settings_WebviewUsage');
 
-      setSettings({
-        isDarkMode: savedSettings[0] ? JSON.parse(savedSettings[0]) : false,
-        language: savedSettings[1] || 'en',
-        notifications: savedSettings[2] ? JSON.parse(savedSettings[2]) : true,
-        webviewUsage: savedSettings[3] ? JSON.parse(savedSettings[3]) : true
-      });
-    } catch (error) {
-      console.error("Failed to load settings: ", error);
-    }
-  };
+			// 불러온 설정값으로 상태 업데이트
+			setSettings({
+				isDarkMode: savedDarkMode === 'Yes',  // 'Yes'를 true로 변환
+				language: savedLanguage || 'en',       // 언어 기본값 'en'
+				notifications: savedNotifications === 'Yes', // 'Yes'를 true로 변환
+				webviewUsage: savedWebviewUsage === 'Yes'  // 'Yes'를 true로 변환
+			});
+		} catch (error) {
+			console.error("Failed to load settings: ", error);
+		}
+	};
 
-  // 설정값을 SecureStore에 저장하는 함수
-  const saveSetting = async (key, value) => {
-    try {
-      await SecureStore.setItemAsync(key, JSON.stringify(value));
-      setSettings((prevSettings) => ({
-        ...prevSettings,
-        [key]: value
-      }));
-    } catch (error) {
-      console.error("Failed to save setting: ", error);
-    }
-  };
+	// 설정값을 SecureStore에 저장하는 함수
+	const saveSetting = async (key, value) => {
+		try {
+			await SecureStore.setItemAsync(key, value ? 'Yes' : 'No');  // true/false 대신 'Yes'/'No'로 저장
+			setSettings((prevSettings) => ({
+				...prevSettings,
+				[key]: value
+			}));
+		} catch (error) {
+			console.error("Failed to save setting: ", error);
+		}
+	};
 
-  // 설정값 변경을 위한 함수
-  const updateSetting = (key, value) => {
-    saveSetting(key, value);
-  };
+	// 설정값 변경을 위한 함수
+	const updateSetting = (key, value) => {
+		saveSetting(key, value);
+	};
 
-  // 앱 로드시 설정값을 불러옴
-  useEffect(() => {
-    loadSettings();
-  }, []);
+	// 앱 로드시 설정값을 불러옴
+	useEffect(() => {
+		loadSettings();
+	}, []);
 
-  return (
-    <SettingsContext.Provider value={{ settings, updateSetting }}>
-      {children}
-    </SettingsContext.Provider>
-  );
+	return (
+		<SettingsContext.Provider value={{ settings, updateSetting }}>
+			{children}
+		</SettingsContext.Provider>
+	);
 };
