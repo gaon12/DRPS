@@ -5,63 +5,69 @@ import * as Location from 'expo-location';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message'; // Toast 메시지 라이브러리 임포트
 
-export default function App() {
+const Map = () => {
   const mapRef = useRef(null); // MapView 참조를 위한 ref
-  const [location, setLocation] = useState(null);
+  const [location, setLocation] = useState(null); // 현재 위치 저장
   const [region, setRegion] = useState({
     latitude: 37.5665, // 서울시청 좌표
     longitude: 126.9780,
     latitudeDelta: 0.01, // 줌 레벨 15에 해당하는 값
     longitudeDelta: 0.01,
   });
-  const [isOsm, setIsOsm] = useState(false);
-  const [isLoadingLocation, setIsLoadingLocation] = useState(true); // 위치 로딩 상태
+  const [isOsm, setIsOsm] = useState(false); // OSM 지도 사용 여부
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false); // 위치 로딩 상태
   const [locationAccuracy, setLocationAccuracy] = useState(false); // 정확한 위치 여부
 
+  // 권한 요청을 늦추고 컴포넌트가 렌더링된 후 일정 시간 지연 후에 실행
   useEffect(() => {
-    const fetchLocation = async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        console.log('Permission to access location was denied');
-        setIsLoadingLocation(false);
-        return;
-      }
+    const timeoutId = setTimeout(() => {
+      const fetchLocation = async () => {
+        setIsLoadingLocation(true); // 위치 로딩 시작
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.log('위치 권한이 거부되었습니다.');
+          setIsLoadingLocation(false); // 로딩 중지
+          return;
+        }
 
-      // getLastKnownPositionAsync()로 대략적인 위치를 빠르게 가져옴
-      const lastKnownLocation = await Location.getLastKnownPositionAsync();
-      if (lastKnownLocation) {
-        const { latitude, longitude } = lastKnownLocation.coords;
-        setLocation({ latitude, longitude });
-        setRegion((prevRegion) => ({
-          ...prevRegion,
-          latitude,
-          longitude,
-        }));
-        setIsLoadingLocation(false); // 대략적인 위치로 지도를 업데이트
-        Toast.show({
-          type: 'info',
-          text1: '현재 위치를 정확히 잡기 전까지는 오차가 있을 수 있습니다.',
-          position: 'top', // 상단에 표시
+        // getLastKnownPositionAsync()로 대략적인 위치를 빠르게 가져옴
+        const lastKnownLocation = await Location.getLastKnownPositionAsync();
+        if (lastKnownLocation) {
+          const { latitude, longitude } = lastKnownLocation.coords;
+          setLocation({ latitude, longitude });
+          setRegion((prevRegion) => ({
+            ...prevRegion,
+            latitude,
+            longitude,
+          }));
+          setIsLoadingLocation(false); // 대략적인 위치로 지도를 업데이트
+          Toast.show({
+            type: 'info',
+            text1: '현재 위치를 정확히 잡기 전까지는 오차가 있을 수 있습니다.',
+            position: 'top', // 상단에 표시
+          });
+          setLocationAccuracy(false); // 아직 정확한 위치는 아님
+        }
+
+        // 정확한 위치를 백그라운드에서 높은 정확도로 가져옴
+        Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High, // 높은 정확도
+        }).then((userLocation) => {
+          const { latitude, longitude } = userLocation.coords;
+          setLocation({ latitude, longitude });
+          setRegion((prevRegion) => ({
+            ...prevRegion,
+            latitude,
+            longitude,
+          }));
+          setLocationAccuracy(true); // 정확한 위치 확인
         });
-        setLocationAccuracy(false); // 아직 정확한 위치는 아님
-      }
+      };
 
-      // 정확한 위치를 백그라운드에서 높은 정확도로 가져온 후, 업데이트
-      Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High, // 높은 정확도
-      }).then((userLocation) => {
-        const { latitude, longitude } = userLocation.coords;
-        setLocation({ latitude, longitude });
-        setRegion((prevRegion) => ({
-          ...prevRegion,
-          latitude,
-          longitude,
-        }));
-        setLocationAccuracy(true); // 정확한 위치 확인
-      });
-    };
+      fetchLocation(); // 위치 정보 가져오기 실행
+    }, 2000); // 2초 지연 후 실행 (UI가 렌더링되고 나서)
 
-    fetchLocation();
+    return () => clearTimeout(timeoutId); // 컴포넌트가 언마운트될 때 타이머 정리
   }, []);
 
   // 현재 위치로 부드럽게 이동하는 함수 (줌 레벨 유지)
@@ -78,7 +84,7 @@ export default function App() {
     }
   };
 
-  // 지도 서비스 전환 함수
+  // 지도 서비스 전환 함수 (기본 지도/OSM)
   const toggleMapService = () => {
     requestAnimationFrame(() => {
       setIsOsm((prevIsOsm) => {
@@ -109,7 +115,7 @@ export default function App() {
         ref={mapRef} // MapView에 ref 연결
         style={styles.map}
         region={region}
-        onRegionChangeComplete={setRegion}
+        onRegionChangeComplete={setRegion} // 지도 영역 변경 완료 시 호출
       >
         {isOsm ? (
           <UrlTile
@@ -152,7 +158,7 @@ export default function App() {
       <Toast />
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -203,10 +209,7 @@ const styles = StyleSheet.create({
   },
 });
 
-// <현재>
-// 현재 운영체제의 기본지도를 받아옴
-// gps 정보받아오기 + 받아온 정보를 토대로 현재 내 위치로 지도 새로고침 하는 기능
-// 토글키 등을 써서 오픈스트리트 등의 오픈라이브러리로 바꾸는 기능.
+export default Map; // Map 컴포넌트를 내보냄
 
 // <해야할 것>
 // 라디오박스처럼 기능 활성/비활성화 (건물 위치 등)
