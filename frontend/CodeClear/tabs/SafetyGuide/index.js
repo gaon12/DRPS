@@ -1,6 +1,6 @@
 import React from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
-import { Card, Title, Paragraph } from 'react-native-paper';
+import { ScrollView, TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import { Card, Title, Paragraph, Button, Divider } from 'react-native-paper';
 import Ionicons from '@expo/vector-icons/Ionicons'; // 아이콘 패키지 가져오기
 
 const ActionGuidelines = ({ navigation }) => {
@@ -55,10 +55,57 @@ const ActionGuidelines = ({ navigation }) => {
               </View>
             </Card.Content>
           </Card>
+          {/* 비상 재난 항목 밑에만 구분선과 버튼을 추가 */}
+          {guideline.id === 4 && (
+            <View>
+              {/* 점선 구분선 */}
+              <Divider style={{ marginVertical: 10, borderWidth: 1, borderStyle: 'dashed', borderColor: '#000' }} />
+              
+              {/* 버튼 2개를 가로로 배치 */}
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => console.log('재난 체크 리스트')}
+                >
+                  <Text style={styles.buttonText}>재난 체크 리스트</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => console.log('피난 시뮬레이션')}
+                >
+                  <Text style={styles.buttonText}>피난 시뮬레이션</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </TouchableOpacity>
       ))}
     </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 10,
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 15, // 버튼 세로 크기 증가
+    marginHorizontal: 12,
+    backgroundColor: '#4682B4',
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 120, // 버튼 높이 지정
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 18, // 버튼 텍스트 크기 증가
+  },
+});
 
 export default ActionGuidelines;
