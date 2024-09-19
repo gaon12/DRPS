@@ -56,6 +56,9 @@ const VersionInfo = () => {
 
             <View style={styles.buttonWrapper}>
                 <Divider style={styles.divider} />
+                <TouchableOpacity style={[styles.button, isDarkMode ? styles.darkButton : styles.lightButton]} onPress={() => navigation.navigate('PatchNotes')}>
+                    <Text style={isDarkMode ? styles.darkButtonText : styles.lightButtonText}>패치노트</Text>
+                </TouchableOpacity>
                 <TouchableOpacity style={[styles.button, isDarkMode ? styles.darkButton : styles.lightButton]}>
                     <Text style={isDarkMode ? styles.darkButtonText : styles.lightButtonText}>이용약관</Text>
                 </TouchableOpacity>
