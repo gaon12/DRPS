@@ -1,7 +1,8 @@
 import React from 'react';
 import { ScrollView, TouchableOpacity, View, Text, StyleSheet } from 'react-native';
-import { Card, Title, Paragraph, Button, Divider } from 'react-native-paper';
+import { Card, Title, Paragraph, Divider } from 'react-native-paper';
 import Ionicons from '@expo/vector-icons/Ionicons'; // 아이콘 패키지 가져오기
+import { FontAwesome5 } from '@expo/vector-icons';
 
 const ActionGuidelines = ({ navigation }) => {
   const guidelines = [
@@ -63,17 +64,21 @@ const ActionGuidelines = ({ navigation }) => {
               
               {/* 버튼 2개를 가로로 배치 */}
               <View style={styles.buttonContainer}>
+                {/* 재난 체크 리스트 버튼 */}
                 <TouchableOpacity
                   style={styles.button}
                   onPress={() => console.log('재난 체크 리스트')}
                 >
+                  <FontAwesome5 name="suitcase-rolling" size={40} color="white" />
                   <Text style={styles.buttonText}>재난 체크 리스트</Text>
                 </TouchableOpacity>
 
+                {/* 피난 시뮬레이션 버튼 */}
                 <TouchableOpacity
                   style={styles.button}
                   onPress={() => console.log('피난 시뮬레이션')}
                 >
+                  <FontAwesome5 name="running" size={40} color="white" />
                   <Text style={styles.buttonText}>피난 시뮬레이션</Text>
                 </TouchableOpacity>
               </View>
@@ -95,7 +100,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 15, // 버튼 세로 크기 증가
     marginHorizontal: 12,
-    backgroundColor: '#4682B4',
+    backgroundColor: '#534b62',
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
@@ -105,6 +110,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 18, // 버튼 텍스트 크기 증가
+    marginTop: 10, // 아이콘과 텍스트 간격
   },
 });
 
