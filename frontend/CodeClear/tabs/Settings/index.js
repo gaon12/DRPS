@@ -99,7 +99,7 @@ const SettingsScreen = () => {
 	};
 
 	const openURL = async (url) => {
-		if (settings.webviewUsage) {  // 웹뷰 사용 설정을 Context에서 가져옴
+		if (settings.webviewUsage) {	// 웹뷰 사용 설정을 Context에서 가져옴
 			await WebBrowser.openBrowserAsync(url);
 		} else {
 			Linking.openURL(url);

@@ -1,353 +1,326 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, ActivityIndicator, TouchableOpacity, Linking, Animated } from 'react-native';
-import MapView, { Marker, UrlTile } from 'react-native-maps';
-import * as Location from 'expo-location';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import Toast from 'react-native-toast-message';
+import React, { useState, useEffect, useRef, useContext } from "react";
+import { StyleSheet, View, ActivityIndicator, TouchableOpacity, Linking, Animated, Text, Modal, Alert } from "react-native";
+import MapView, { Marker, UrlTile, Callout } from "react-native-maps";
+import * as Location from "expo-location";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import Toast from "react-native-toast-message";
+import { SettingsContext } from '../../Context'; // Import SettingsContext
+import ShelterDetailsModal from './modal/ShelterDetailsModal';
 
 const Map = () => {
-  const mapRef = useRef(null);
-  const [location, setLocation] = useState(null);
-  const [region, setRegion] = useState({
-    latitude: 37.5665,
-    longitude: 126.9780,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  });
-  const [isOsm, setIsOsm] = useState(false);
-  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
-  const [locationAccuracy, setLocationAccuracy] = useState(false);
+	const mapRef = useRef(null);
+	const { settings } = useContext(SettingsContext); // Use context to get settings
+	const { useOpenStreetMap } = settings; // Destructure the map setting
 
-  const [isExpanded, setIsExpanded] = useState(false); // 버튼 확장 상태
-  const animatedHeight = useRef(new Animated.Value(50)).current; // 버튼 높이 애니메이션 기본값 50
-  const [toggleStates, setToggleStates] = useState([false, false, false]); // 각 토글 버튼의 on/off 상태
-  const [shelters, setShelters] = useState([]); // API로부터 받은 대피소 데이터
-  const [filteredShelters, setFilteredShelters] = useState([]); // 반경 2km 이내의 대피소
+	const [region, setRegion] = useState({
+		latitude: 37.5665,
+		longitude: 126.978,
+		latitudeDelta: 0.01,
+		longitudeDelta: 0.01,
+	});
+	const [currentLocation, setCurrentLocation] = useState(null); // Store current location separately
+	const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+	const [isExpanded, setIsExpanded] = useState(false);
+	const animatedHeight = useRef(new Animated.Value(50)).current;
+	const [toggleStates, setToggleStates] = useState([false, false, false]);
+	const [shelters, setShelters] = useState([]);
+	const [filteredShelters, setFilteredShelters] = useState([]);
+	const [isModalVisible, setIsModalVisible] = useState(false);
+	const [selectedShelter, setSelectedShelter] = useState(null);
 
-  useEffect(() => {
-    const fetchLocation = async () => {
-      setIsLoadingLocation(true);
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        console.log('위치 권한이 거부되었습니다.');
-        setIsLoadingLocation(false);
-        return;
-      }
+	const shelterTypes = ["CivilDefenseShelters", "EarthquakeShelters", "TsunamiShelters"];
+	const shelterColors = ["#00FF00", "#FF4500", "#1E90FF"];
 
-      const lastKnownLocation = await Location.getLastKnownPositionAsync();
-      if (lastKnownLocation) {
-        const { latitude, longitude } = lastKnownLocation.coords;
-        setLocation({ latitude, longitude });
-        setRegion((prevRegion) => ({
-          ...prevRegion,
-          latitude,
-          longitude,
-        }));
-        setIsLoadingLocation(false);
-        Toast.show({
-          type: 'info',
-          text1: '현재 위치를 정확히 잡기 전까지는 오차가 있을 수 있습니다.',
-          position: 'top',
-        });
-        setLocationAccuracy(false);
-      }
+	useEffect(() => {
+		const fetchLocation = async () => {
+			setIsLoadingLocation(true);
+			Toast.show({
+				type: "info",
+				text1: "현재 위치를 찾고 있습니다...", // Display this message while fetching
+				position: "top",
+			});
 
-      const userLocation = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
-      });
-      const { latitude, longitude } = userLocation.coords;
-      setLocation({ latitude, longitude });
-      setRegion((prevRegion) => ({
-        ...prevRegion,
-        latitude,
-        longitude,
-      }));
-      setLocationAccuracy(true);
-    };
+			const { status } = await Location.requestForegroundPermissionsAsync();
+			if (status !== "granted") {
+				console.log("위치 권한이 거부되었습니다.");
+				setIsLoadingLocation(false);
+				return;
+			}
 
-    fetchLocation();
-  }, []);
+			const userLocation = await Location.getCurrentPositionAsync({
+				accuracy: Location.Accuracy.High,
+			});
 
-  useEffect(() => {
-    // API 데이터 가져오기
-    const fetchShelters = async () => {
-      try {
-        const response = await fetch('https://apis.uiharu.dev/drps/imsi/shelter/api.php');
-        const data = await response.json();
-        if (data.statusCode === 200) {
-          setShelters(data.data);
-        }
-      } catch (error) {
-        console.error('대피소 데이터 로드 중 오류 발생:', error);
-      }
-    };
+			const { latitude, longitude } = userLocation.coords;
+			setCurrentLocation({ latitude, longitude });
+			setRegion(prevRegion => ({
+				...prevRegion,
+				latitude,
+				longitude,
+			}));
+			setIsLoadingLocation(false);
+		};
 
-    fetchShelters();
-  }, []);
+		fetchLocation();
+	}, []);
 
-  // 반경 2km 이내의 대피소 필터링
-  useEffect(() => {
-    if (location && toggleStates[2]) { // 민방위 버튼이 활성화되어 있을 때만
-      const filterShelters = shelters.filter((shelter) => {
-        const distance = getDistanceFromLatLonInKm(
-          location.latitude,
-          location.longitude,
-          shelter.lat,
-          shelter.lon
-        );
-        return distance <= 2; // 2km 이내만
-      });
-      setFilteredShelters(filterShelters);
-    }
-  }, [location, toggleStates, shelters]);
+	useEffect(() => {
+		// Fetch shelters whenever region or toggles change
+		fetchShelters(1);
+	}, [region, toggleStates]);
 
-  const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // 지구 반경 (km)
-    const dLat = deg2rad(lat2 - lat1);
-    const dLon = deg2rad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // km 반환
-    return distance;
-  };
+	const fetchShelters = async (pageNo) => {
+		if (!region) return;
 
-  const deg2rad = (deg) => {
-    return deg * (Math.PI / 180);
-  };
+		const zoomLevel = calculateZoomLevel(region.latitudeDelta);
+		const activeShelterTypes = shelterTypes.filter((_, index) => toggleStates[index]);
 
-  const moveToCurrentLocation = () => {
-    if (location && mapRef.current) {
-      requestAnimationFrame(() => {
-        mapRef.current.animateToRegion({
-          latitude: location.latitude,
-          longitude: location.longitude,
-          latitudeDelta: region.latitudeDelta,
-          longitudeDelta: region.longitudeDelta,
-        }, 1000);
-      });
-    }
-  };
+		const requests = activeShelterTypes.map(type =>
+			fetch(
+				`https://apis.uiharu.dev/drps/shelters/api.php?ShelterType=${type}&latitude=${region.latitude}&longitude=${region.longitude}&distance=${zoomLevel}&pageNo=${pageNo}&numOfRows=10`
+			).then(res => res.json())
+		);
 
-  const toggleMapService = () => {
-    setIsOsm((prevIsOsm) => {
-      const newService = !prevIsOsm ? 'OSM' : '기본';
-      Toast.show({
-        type: 'info',
-        text1: `${newService} 지도로 변경했습니다.`,
-        position: 'top',
-      });
-      return !prevIsOsm;
-    });
-  };
+		try {
+			const results = await Promise.all(requests);
+			const allShelters = results.flatMap((result, index) => {
+				if (result.StatusCode === 200) {
+					const type = activeShelterTypes[index];
+					return result.data.map(shelter => ({ ...shelter, type }));
+				}
+				return [];
+			});
+			setShelters(prevShelters => [...prevShelters, ...allShelters]);
+			setFilteredShelters(filterSheltersByDistance([...shelters, ...allShelters], zoomLevel));
+		} catch (error) {
+			console.error("대피소 데이터 로드 중 오류 발생:", error);
+		}
+	};
 
-  const toggleButtonExpansion = () => {
-    if (isExpanded) {
-      // 버튼 축소 애니메이션
-      Animated.timing(animatedHeight, {
-        toValue: 50, // 축소 시 크기
-        duration: 300,
-        useNativeDriver: false,
-      }).start(() => setIsExpanded(false));
-    } else {
-      // 버튼 확장 애니메이션
-      setIsExpanded(true);
-      Animated.timing(animatedHeight, {
-        toValue: 220, // 확장 시 크기 (충분한 높이로 수정)
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
-    }
-  };
+	const filterSheltersByDistance = (shelters, distance) => shelters.filter(shelter => shelter.distance <= distance);
 
-  const toggleButtonState = (index) => {
-    // 토글 버튼 on/off 상태 변경
-    setToggleStates((prevStates) => {
-      const newStates = [...prevStates];
-      newStates[index] = !newStates[index];
-      return newStates;
-    });
-  };
+	const calculateZoomLevel = latitudeDelta => {
+		const maxZoomDistance = 10000;
+		const minZoomDistance = 1;
+		const distance = Math.min(Math.max((1 / latitudeDelta) * 1000, minZoomDistance), maxZoomDistance);
+		return Math.round(distance);
+	};
 
-  return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.locationButton} onPress={moveToCurrentLocation}>
-        <Ionicons name="locate" size={24} color="white" />
-      </TouchableOpacity>
+	const moveToCurrentLocation = () => {
+		if (currentLocation && mapRef.current) {
+			requestAnimationFrame(() => {
+				mapRef.current.animateToRegion({ ...currentLocation, latitudeDelta: 0.01, longitudeDelta: 0.01 }, 1000);
+			});
+		}
+	};
 
-      <TouchableOpacity style={styles.mapServiceButton} onPress={toggleMapService}>
-        <MaterialCommunityIcons name={isOsm ? "map" : "map-outline"} size={24} color="white" />
-      </TouchableOpacity>
+	const toggleButtonExpansion = () => {
+		Animated.timing(animatedHeight, {
+			toValue: isExpanded ? 50 : 220,
+			duration: 300,
+			useNativeDriver: false,
+		}).start(() => setIsExpanded(prev => !prev));
+	};
 
-      {/* 화살표 버튼 (애니메이션 적용) */}
-      <Animated.View style={[styles.expandableButton, { height: animatedHeight }]}>
-        <TouchableOpacity onPress={toggleButtonExpansion} style={styles.arrowButton}>
-          <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={24} color="white" />
-        </TouchableOpacity>
+	const toggleButtonState = index => {
+		setToggleStates(prevStates => {
+			const newStates = [...prevStates];
+			newStates[index] = !newStates[index];
+			return newStates;
+		});
+	};
 
-        {/* 토글 버튼들 (버튼이 확장될 때 나타남) */}
-        {isExpanded && (
-          <View style={styles.toggleContainer}>
-            {toggleStates.map((state, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.toggleButton,
-                  { backgroundColor: state ? '#388E3C' : '#A5D6A7' }, // on 상태일 때 짙은 색
-                ]}
-                onPress={() => toggleButtonState(index)}
-              >
-                {/* 토글 아이콘 */}
-                {index === 0 && (
-                  <MaterialCommunityIcons name="office-building" size={24} color="white" />
-                )}
-                {index === 1 && (
-                  <MaterialCommunityIcons name="waves" size={24} color="white" />
-                )}
-                {index === 2 && (
-                  <MaterialCommunityIcons name="shield-account" size={24} color="white" />
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </Animated.View>
+	const handleLongPress = index => {
+		const shelterNames = ["민방위 대피소", "지진 대피소", "해일 대피소"];
+		Toast.show({
+			type: "info",
+			text1: `${shelterNames[index]} 버튼`,
+			position: "top",
+		});
+	};
 
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        region={region}
-        onRegionChangeComplete={setRegion}
-      >
-        {isOsm ? (
-          <UrlTile
-            urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maximumZ={19}
-            flipY={false}
-            tileSize={256}
-          />
-        ) : (
-          <Marker
-            coordinate={{ latitude: 37.5665, longitude: 126.9780 }}
-            title="서울시청"
-            description="서울특별시의 중심"
-          />
-        )}
-        {location && (
-          <Marker
-            coordinate={location}
-            title="현재 위치"
-          />
-        )}
+	const fetchShelterDetails = async (shelter) => {
+		try {
+			const response = await fetch(
+				`https://apis.uiharu.dev/drps/shelters/api.php?ShelterType=${shelter.type}&ShelterDetail=${shelter.id}`
+			);
+			const data = await response.json();
+			if (data.StatusCode === 200) {
+				setSelectedShelter(data.data);
+				setIsModalVisible(true); // Update visibility state here
+			} else {
+				Alert.alert("오류", "상세 정보를 가져오는 중 문제가 발생했습니다.");
+			}
+		} catch (error) {
+			console.error("Error fetching shelter details:", error);
+			Alert.alert("오류", "상세 정보를 가져오는 중 문제가 발생했습니다.");
+		}
+	};
 
-        {/* 민방위 버튼이 활성화된 경우 대피소 마커 표시 */}
-        {toggleStates[2] && filteredShelters.map((shelter) => (
-          <Marker
-            key={shelter.acmdfclty_sn}
-            coordinate={{ latitude: shelter.lat, longitude: shelter.lon }}
-            title={shelter.vt_acmdfclty_nm}
-            description={shelter.rn_adres}
-            pinColor="#00FF00"
-          />
-        ))}
-      </MapView>
-      {isLoadingLocation && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0000ff" />
-        </View>
-      )}
+	const handleMarkerPress = (shelter) => {
+		fetchShelterDetails(shelter);
+	};
 
-      {isOsm && (
-        <View style={styles.licenseContainer}>
-          <Text style={styles.licenseText} onPress={() => Linking.openURL('https://www.openstreetmap.org/copyright')}>
-            © OpenStreetMap contributors
-          </Text>
-        </View>
-      )}
+	return (
+		<View style={styles.container}>
+			<TouchableOpacity style={styles.locationButton} onPress={moveToCurrentLocation}>
+				<Ionicons name="locate" size={24} color="white" />
+			</TouchableOpacity>
 
-      <Toast />
-    </View>
-  );
+			<Animated.View style={[styles.expandableButton, { height: animatedHeight }]}>
+				<TouchableOpacity onPress={toggleButtonExpansion} style={styles.arrowButton}>
+					<Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={24} color="white" />
+				</TouchableOpacity>
+
+				{isExpanded && (
+					<View style={styles.toggleContainer}>
+						{toggleStates.map((state, index) => (
+							<TouchableOpacity
+								key={index}
+								style={[styles.toggleButton, { backgroundColor: state ? "#388E3C" : "#A5D6A7" }]}
+								onPress={() => toggleButtonState(index)}
+								onLongPress={() => handleLongPress(index)}
+							>
+								{index === 0 && <MaterialCommunityIcons name="office-building" size={24} color="white" />}
+								{index === 1 && <MaterialCommunityIcons name="waves" size={24} color="white" />}
+								{index === 2 && <MaterialCommunityIcons name="shield-account" size={24} color="white" />}
+							</TouchableOpacity>
+						))}
+					</View>
+				)}
+			</Animated.View>
+
+			<MapView
+				ref={mapRef}
+				style={styles.map}
+				region={region}
+				onRegionChangeComplete={setRegion}
+			>
+				{useOpenStreetMap ? (
+					<UrlTile urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png" maximumZ={19} flipY={false} tileSize={256} />
+				) : (
+					<Marker coordinate={{ latitude: 37.5665, longitude: 126.978 }} title="서울시청" description="서울특별시의 중심" />
+				)}
+
+				{/* Fixed current location pin */}
+				{currentLocation && (
+					<Marker
+						coordinate={currentLocation}
+						title="현재 위치"
+						pinColor="#FF0000"
+					/>
+				)}
+
+				{filteredShelters.map((shelter, index) => {
+					const shelterIndex = shelterTypes.indexOf(shelter.type);
+					// 더 유니크한 키 생성
+					const uniqueKey = `${shelter.type}-${shelter.id}-${shelter.latitude}-${shelter.longitude}-${index}`;
+					return (
+						<Marker
+							key={uniqueKey}
+							coordinate={{ latitude: shelter.latitude, longitude: shelter.longitude }}
+							pinColor={shelterColors[shelterIndex]}
+						>
+							<Callout onPress={() => handleMarkerPress(shelter)}>
+								<Text style={styles.calloutAddress}>{shelter.address}</Text>
+								<Text style={styles.calloutDistance}>거리: {shelter.distance.toFixed(2)} m</Text>
+								<Text>상세 정보 보려면 누르세요</Text>
+							</Callout>
+						</Marker>
+					);
+				})}
+			</MapView>
+
+			{useOpenStreetMap && (
+				<View style={styles.licenseContainer}>
+					<Text style={styles.licenseText} onPress={() => Linking.openURL("https://www.openstreetmap.org/copyright")}>
+						© OpenStreetMap contributors
+					</Text>
+				</View>
+			)}
+
+			<ShelterDetailsModal
+				isVisible={isModalVisible}
+				shelter={selectedShelter}
+				onClose={() => setIsModalVisible(false)}
+			/>
+			<Toast />
+		</View>
+	);
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  locationButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: '#007AFF',
-    padding: 10,
-    borderRadius: 50,
-    zIndex: 1,
-  },
-  mapServiceButton: {
-    position: 'absolute',
-    top: 60,
-    right: 10,
-    backgroundColor: '#FF9500',
-    padding: 10,
-    borderRadius: 50,
-    zIndex: 1,
-  },
-  expandableButton: {
-    position: 'absolute',
-    top: 110,
-    right: 10,
-    backgroundColor: '#4CAF50',
-    width: 44, // 너비 OSM 버튼과 맞춤
-    borderRadius: 25,
-    alignItems: 'center',
-    zIndex: 1,
-    overflow: 'hidden',
-  },
-  arrowButton: {
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  toggleContainer: {
-    marginTop: 10,
-    width: '100%',
-    alignItems: 'center',
-  },
-  toggleButton: {
-    width: 40, // GPS 및 OSM 버튼과 크기 동일
-    height: 40, // GPS 및 OSM 버튼과 크기 동일
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10, // 버튼 간 간격 축소
-  },
-  map: {
-    flex: 1,
-  },
-  loadingContainer: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -50 }, { translateY: -50 }],
-    alignItems: 'center',
-  },
-  licenseContainer: {
-    position: 'absolute',
-    bottom: 10,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-  },
-  licenseText: {
-    color: '#333',
-    fontSize: 12,
-    textDecorationLine: 'underline',
-  },
+	container: {
+		flex: 1,
+		backgroundColor: "#fff",
+	},
+	locationButton: {
+		position: "absolute",
+		top: 10,
+		right: 10,
+		backgroundColor: "#007AFF",
+		padding: 10,
+		borderRadius: 50,
+		zIndex: 1,
+	},
+	expandableButton: {
+		position: "absolute",
+		top: 60,
+		right: 10,
+		backgroundColor: "#4CAF50",
+		width: 44,
+		borderRadius: 25,
+		alignItems: "center",
+		zIndex: 1,
+		overflow: "hidden",
+	},
+	arrowButton: {
+		height: 50,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	toggleContainer: {
+		marginTop: 10,
+		width: "100%",
+		alignItems: "center",
+	},
+	toggleButton: {
+		width: 40,
+		height: 40,
+		borderRadius: 20,
+		justifyContent: "center",
+		alignItems: "center",
+		marginBottom: 10,
+	},
+	map: {
+		flex: 1,
+	},
+	licenseContainer: {
+		position: "absolute",
+		bottom: 10,
+		left: 0,
+		right: 0,
+		alignItems: "center",
+		zIndex: 1,
+		backgroundColor: "rgba(255, 255, 255, 0.7)",
+	},
+	licenseText: {
+		color: "#333",
+		fontSize: 12,
+		textDecorationLine: "underline",
+	},
+	infoContainer: {
+		marginBottom: 10,
+		width: '100%',
+	},
+	calloutAddress: {
+		fontSize: 14,
+		fontWeight: "bold",
+	},
+	calloutDistance: {
+		fontSize: 12,
+		color: "#555",
+	},
 });
 
 export default Map;

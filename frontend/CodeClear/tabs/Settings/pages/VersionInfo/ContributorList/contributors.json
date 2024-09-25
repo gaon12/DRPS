@@ -1,47 +1,47 @@
 {
-    "코드 작성": [
-        {
-            "name": "정가온(gaon12)",
-            "role": "Lead Developer",
-            "avatarUrl": "https://avatars.githubusercontent.com/u/34927797?v=4",
-            "github": "https://github.com/gaon12"
-        },
-        {
-            "name": "Sajandora",
-            "role": "Project Member",
-            "avatarUrl": "hhttps://avatars.githubusercontent.com/u/113443270?v=4",
-            "github": "https://github.com/Sajandora"
-        }
-    ],
-    "PR": [
-        {
-            "name": "정가온(gaon12)",
-            "role": "Lead Developer",
-            "avatarUrl": "https://avatars.githubusercontent.com/u/34927797?v=4",
-            "github": "https://github.com/gaon12"
-        }
-    ],
-    "이슈 등록": [
-        {
-            "name": "정가온(gaon12)",
-            "role": "Lead Developer",
-            "avatarUrl": "https://avatars.githubusercontent.com/u/34927797?v=4",
-            "github": "https://github.com/gaon12"
-        }
-    ],
-    "기부": [
-        {
-            "name": "정가온(gaon12)",
-            "role": "Lead Developer",
-            "avatarUrl": "https://avatars.githubusercontent.com/u/34927797?v=4",
-            "github": "https://github.com/gaon12"
-        }
-    ],
-    "기타": [
-        {
-            "name": "And You!",
-            "role": "You who use this service and support it!",
-            "avatarUrl": "andyou"
-        }
-    ]
+		"코드 작성": [
+				{
+						"name": "정가온(gaon12)",
+						"role": "Lead Developer",
+						"avatarUrl": "https://avatars.githubusercontent.com/u/34927797?v=4",
+						"github": "https://github.com/gaon12"
+				},
+				{
+						"name": "Sajandora",
+						"role": "Project Member",
+						"avatarUrl": "hhttps://avatars.githubusercontent.com/u/113443270?v=4",
+						"github": "https://github.com/Sajandora"
+				}
+		],
+		"PR": [
+				{
+						"name": "정가온(gaon12)",
+						"role": "Lead Developer",
+						"avatarUrl": "https://avatars.githubusercontent.com/u/34927797?v=4",
+						"github": "https://github.com/gaon12"
+				}
+		],
+		"이슈 등록": [
+				{
+						"name": "정가온(gaon12)",
+						"role": "Lead Developer",
+						"avatarUrl": "https://avatars.githubusercontent.com/u/34927797?v=4",
+						"github": "https://github.com/gaon12"
+				}
+		],
+		"기부": [
+				{
+						"name": "정가온(gaon12)",
+						"role": "Lead Developer",
+						"avatarUrl": "https://avatars.githubusercontent.com/u/34927797?v=4",
+						"github": "https://github.com/gaon12"
+				}
+		],
+		"기타": [
+				{
+						"name": "And You!",
+						"role": "You who use this service and support it!",
+						"avatarUrl": "andyou"
+				}
+		]
 }
