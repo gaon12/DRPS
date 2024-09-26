@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, } from 'react-native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons'; // 아이콘을 위한 라이브러리
 
 const App = () => {
   const [showList, setShowList] = useState(false);
   const [searchText, setSearchText] = useState('');
-
-  // 현재 화면 크기 받아오기
-  const window = Dimensions.get('window');
 
   // 리스트 데이터
   const dataList = [
@@ -35,7 +32,6 @@ const App = () => {
     { id: '22', title: '적조' },
   ];
 
-  // 데이터를 3개씩 나누는 로직
   const formatData = (data, numColumns) => {
     const totalRows = Math.floor(data.length / numColumns);
     let totalLastRow = data.length - (totalRows * numColumns);
@@ -102,6 +98,7 @@ const App = () => {
 
   return (
     <FlatList
+      style={{ flex: 1, paddingHorizontal: 15 }} // 양쪽 끝에 여백을 추가
       data={showList ? formatData(dataList, 3) : []}
       keyExtractor={item => item.id}
       renderItem={({ item }) => {
@@ -120,10 +117,6 @@ const App = () => {
       }}
       numColumns={3}
       ListHeaderComponent={renderHeader} // 헤더 추가
-      contentContainerStyle={{
-        paddingBottom: 100, // 스크롤 시 하단 패딩 추가
-        width: window.width, // 가로 모드에서도 동적으로 크기 적용
-      }}
     />
   );
 };
@@ -133,6 +126,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#fff',
+    paddingHorizontal: 10, // 양쪽에 여백 추가
   },
   searchContainer: {
     flexDirection: 'row',
@@ -142,6 +136,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 10, // 검색창과 아래 버튼 사이의 간격
+    marginTop: 20,
   },
   searchInput: {
     flex: 1,
@@ -169,6 +164,9 @@ const styles = StyleSheet.create({
     color: '#808080', // 회색 폰트 색상
     fontWeight: 'bold',
     fontSize: 12,
+  },
+  buttonContainer: {
+    marginBottom: 20,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -198,7 +196,6 @@ const styles = StyleSheet.create({
     right: 10,  // 텍스트를 좌측으로 이동
     fontSize: 20,
   },
-  
   showAllButton: {
     backgroundColor: '#fff', // 흰색 배경
     paddingVertical: 5,
@@ -227,7 +224,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 10,
-    margin: 5,
+    marginHorizontal: 10, // 양쪽 여백 추가
+    marginVertical: 5,    // 세로 여백
   },
   cellText: {
     fontSize: 16,
