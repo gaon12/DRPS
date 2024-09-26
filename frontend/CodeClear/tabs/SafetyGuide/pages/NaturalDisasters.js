@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Dimensions } from 'react-native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons'; // 아이콘을 위한 라이브러리
 
 const App = () => {
   const [showList, setShowList] = useState(false);
   const [searchText, setSearchText] = useState('');
+
+  // 현재 화면 크기 받아오기
+  const window = Dimensions.get('window');
 
   // 리스트 데이터
   const dataList = [
@@ -23,6 +26,13 @@ const App = () => {
     { id: '13', title: '지진해일' },
     { id: '14', title: '화산폭발' },
     { id: '15', title: '가뭄' },
+    { id: '16', title: '홍수' },
+    { id: '17', title: '조수' },
+    { id: '18', title: '산사태' },
+    { id: '19', title: '자연우주물체추락' },
+    { id: '20', title: '우주전파재난' },
+    { id: '21', title: '조류대발생(녹조)' },
+    { id: '22', title: '적조' },
   ];
 
   // 데이터를 3개씩 나누는 로직
@@ -42,8 +52,8 @@ const App = () => {
     console.log(`${title} 항목을 눌렀습니다!`);
   };
 
-  return (
-    <View style={styles.container}>
+  const renderHeader = () => (
+    <>
       {/* 검색창 + 돋보기 아이콘 추가 */}
       <View style={styles.searchContainer}>
         <TextInput
@@ -62,53 +72,59 @@ const App = () => {
       </TouchableOpacity>
 
       {/* 4개의 큰 버튼 */}
-      <View style={styles.buttonContainer}>
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.bigButton}>
-            <Text style={styles.buttonText}>범죄</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.bigButton}>
-            <Text style={styles.buttonText}>화재</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.bigButton}>
-            <Text style={styles.buttonText}>구조/구급</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.bigButton}>
-            <Text style={styles.buttonText}>해양사고</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.buttonRow}>
+        <TouchableOpacity style={styles.bigButton}>
+          <MaterialIcons name="storm" size={65} color="black" style={styles.buttonIcon} />
+          <Text style={styles.buttonText}>태풍</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.bigButton}>
+          <Ionicons name="rainy-outline" size={65} color="black" style={styles.buttonIcon} />
+          <Text style={styles.buttonText}>호우</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.buttonRow}>
+        <TouchableOpacity style={styles.bigButton}>
+          <Ionicons name="sunny-outline" size={65} color="black" style={styles.buttonIcon} />
+          <Text style={styles.buttonText}>폭염</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.bigButton}>
+          <Ionicons name="snow-outline" size={65} color="black" style={styles.buttonIcon} />
+          <Text style={styles.buttonText}>한파</Text>
+        </TouchableOpacity>
       </View>
 
       {/* 전체보기 버튼 */}
       <TouchableOpacity style={styles.showAllButton} onPress={() => setShowList(!showList)}>
         <Text style={styles.showAllButtonText}>전체보기</Text>
       </TouchableOpacity>
+    </>
+  );
 
-      {/* 3개씩 리스트 출력 */}
-      {showList && (
-        <FlatList
-          data={formatData(dataList, 3)}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => {
-            if (item.empty) {
-              return <View style={[styles.listItemButton, styles.invisibleItem]} />;
-            }
-            return (
-              <TouchableOpacity
-                style={styles.listItemButton}
-                onPress={() => handleItemPress(item.title)} // 터치 시 로직 추가
-              >
-                <Text style={styles.cellText}>{item.title}</Text>
-                <MaterialIcons name="chevron-right" size={24} color="black" />
-              </TouchableOpacity>
-            );
-          }}
-          numColumns={3}
-        />
-      )}
-    </View>
+  return (
+    <FlatList
+      data={showList ? formatData(dataList, 3) : []}
+      keyExtractor={item => item.id}
+      renderItem={({ item }) => {
+        if (item.empty) {
+          return <View style={[styles.listItemButton, styles.invisibleItem]} />;
+        }
+        return (
+          <TouchableOpacity
+            style={styles.listItemButton}
+            onPress={() => handleItemPress(item.title)}
+          >
+            <Text style={styles.cellText}>{item.title}</Text>
+            <MaterialIcons name="chevron-right" size={24} color="black" />
+          </TouchableOpacity>
+        );
+      }}
+      numColumns={3}
+      ListHeaderComponent={renderHeader} // 헤더 추가
+      contentContainerStyle={{
+        paddingBottom: 100, // 스크롤 시 하단 패딩 추가
+        width: window.width, // 가로 모드에서도 동적으로 크기 적용
+      }}
+    />
   );
 };
 
@@ -136,6 +152,7 @@ const styles = StyleSheet.create({
   },
   settingsIcon: {
     marginRight: 5, // 아이콘과 텍스트 사이의 간격
+    fontSize: 14,
   },
   settingsButton: {
     flexDirection: 'row', // 아이콘과 텍스트를 가로로 배치
@@ -151,9 +168,7 @@ const styles = StyleSheet.create({
   settingsButtonText: {
     color: '#808080', // 회색 폰트 색상
     fontWeight: 'bold',
-  },
-  buttonContainer: {
-    marginBottom: 20,
+    fontSize: 12,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -163,15 +178,27 @@ const styles = StyleSheet.create({
   bigButton: {
     flex: 1,
     backgroundColor: '#B0E0E6', // 버튼 색상
-    paddingVertical: 60, // 버튼 세로 크기 증가
-    marginHorizontal: 10, 
+    paddingVertical: 60, // 버튼 세로 크기
+    marginHorizontal: 10,
     alignItems: 'center',
+    justifyContent: 'flex-start', // 아이콘과 텍스트 배치를 시작 위치로 조정
     borderRadius: 10,
+    position: 'relative',
+  },
+  buttonIcon: {
+    position: 'absolute',
+    top: 10, // 아이콘을 상단에 위치
+    left: 10, // 아이콘을 좌측에 위치
   },
   buttonText: {
-    color: '#fff',
+    color: '#000', // 검정색 텍스트
     fontWeight: 'bold',
+    position: 'absolute',
+    bottom: 10, // 텍스트를 아래로 이동
+    right: 10,  // 텍스트를 좌측으로 이동
+    fontSize: 20,
   },
+  
   showAllButton: {
     backgroundColor: '#fff', // 흰색 배경
     paddingVertical: 5,
