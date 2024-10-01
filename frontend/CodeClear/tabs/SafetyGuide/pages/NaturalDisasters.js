@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Modal, ScrollView, TouchableWithoutFeedback, StyleSheet, } from 'react-native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons'; // 아이콘을 위한 라이브러리
 
 const App = () => {
   const [showList, setShowList] = useState(false);
+  const [showModal, setShowModal] = useState(false); // 모달 표시 상태 추가
   const [searchText, setSearchText] = useState('');
 
   // 리스트 데이터
@@ -32,17 +33,6 @@ const App = () => {
     { id: '22', title: '적조' },
   ];
 
-  const formatData = (data, numColumns) => {
-    const totalRows = Math.floor(data.length / numColumns);
-    let totalLastRow = data.length - (totalRows * numColumns);
-
-    while (totalLastRow !== 0 && totalLastRow !== numColumns) {
-      data.push({ id: `blank-${totalLastRow}`, title: '', empty: true });
-      totalLastRow++;
-    }
-    return data;
-  };
-
   const handleItemPress = (title) => {
     // 클릭 시 처리할 로직
     console.log(`${title} 항목을 눌렀습니다!`);
@@ -62,7 +52,7 @@ const App = () => {
       </View>
 
       {/* 재난 설정 버튼 */}
-      <TouchableOpacity style={styles.settingsButton} onPress={() => console.log('재난 설정')}>
+      <TouchableOpacity style={styles.settingsButton} onPress={() => setShowModal(true)}>
         <Ionicons name="settings-sharp" size={24} color="black" style={styles.settingsIcon} />
         <Text style={styles.settingsButtonText}>재난 설정</Text>
       </TouchableOpacity>
@@ -97,15 +87,12 @@ const App = () => {
   );
 
   return (
-    <FlatList
-      style={{ flex: 1, paddingHorizontal: 15 }} // 양쪽 끝에 여백을 추가
-      data={showList ? formatData(dataList, 3) : []}
-      keyExtractor={item => item.id}
-      renderItem={({ item }) => {
-        if (item.empty) {
-          return <View style={[styles.listItemButton, styles.invisibleItem]} />;
-        }
-        return (
+    <>
+      <FlatList
+        style={{ flex: 1, paddingHorizontal: 15 }} // 양쪽 끝에 여백을 추가
+        data={showList ? dataList : []}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.listItemButton}
             onPress={() => handleItemPress(item.title)}
@@ -113,11 +100,47 @@ const App = () => {
             <Text style={styles.cellText}>{item.title}</Text>
             <MaterialIcons name="chevron-right" size={24} color="black" />
           </TouchableOpacity>
-        );
-      }}
-      numColumns={3}
-      ListHeaderComponent={renderHeader} // 헤더 추가
-    />
+        )}
+        numColumns={3}
+        ListHeaderComponent={renderHeader} // 헤더 추가
+      />
+
+      {/* 모달 구현 */}
+      <Modal
+        visible={showModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowModal(false)}
+      >
+        {/* 모달 바깥을 눌렀을 때 모달 닫기 */}
+        <TouchableWithoutFeedback onPress={() => setShowModal(false)}>
+          <View style={styles.modalContainer}>
+            {/* 모달 내부는 닫히지 않도록 View로 감싸기 */}
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>전체 재난 리스트</Text>
+                {/* ScrollView로 감싸서 슬라이드 기능 추가 */}
+                <ScrollView>
+                  {dataList.map(item => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={styles.listItemButton}
+                      onPress={() => handleItemPress(item.title)}
+                    >
+                      <Text style={styles.cellText}>{item.title}</Text>
+                      <MaterialIcons name="chevron-right" size={24} color="black" />
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+                <TouchableOpacity style={styles.closeButton} onPress={() => setShowModal(false)}>
+                  <Text style={styles.closeButtonText}>닫기</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+    </>
   );
 };
 
@@ -169,7 +192,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   buttonRow: {
-    flexDirection: 'row',
+    flexDirection: 'row', // 가로로 버튼들을 배치
     justifyContent: 'space-between',
     marginBottom: 20, // 버튼 사이 세로 간격 증가
   },
@@ -234,6 +257,42 @@ const styles = StyleSheet.create({
   invisibleItem: {
     backgroundColor: 'transparent',
     borderWidth: 0,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // 반투명 배경
+  },
+  modalContent: {
+    width: '80%',
+    maxHeight: '80%', // 최대 높이를 설정해서 화면에 맞추기
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5, // Android에서 그림자 효과
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  closeButton: {
+    marginTop: 20,
+    alignSelf: 'center',
+    backgroundColor: '#ddd',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  closeButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
   },
 });
 
