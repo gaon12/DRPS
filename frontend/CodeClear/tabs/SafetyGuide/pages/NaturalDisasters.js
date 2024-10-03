@@ -1,41 +1,85 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, Modal, ScrollView, TouchableWithoutFeedback, StyleSheet, } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Modal, ScrollView, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons'; // 아이콘을 위한 라이브러리
 
 const App = () => {
   const [showList, setShowList] = useState(false);
-  const [showModal, setShowModal] = useState(false); // 모달 표시 상태 추가
+  const [showModal, setShowModal] = useState(false); // 모달 표시 상태
   const [searchText, setSearchText] = useState('');
 
-  // 리스트 데이터
-  const dataList = [
-    { id: '1', title: '홍수' },
-    { id: '2', title: '태풍' },
-    { id: '3', title: '호우' },
-    { id: '4', title: '낙뢰' },
-    { id: '5', title: '강풍' },
-    { id: '6', title: '풍랑' },
-    { id: '7', title: '대설' },
-    { id: '8', title: '한파' },
-    { id: '9', title: '폭염' },
-    { id: '10', title: '황사' },
-    { id: '11', title: '지진' },
-    { id: '12', title: '해일' },
-    { id: '13', title: '지진해일' },
-    { id: '14', title: '화산폭발' },
-    { id: '15', title: '가뭄' },
-    { id: '16', title: '홍수' },
-    { id: '17', title: '조수' },
-    { id: '18', title: '산사태' },
-    { id: '19', title: '자연우주물체추락' },
-    { id: '20', title: '우주전파재난' },
-    { id: '21', title: '조류대발생(녹조)' },
-    { id: '22', title: '적조' },
+  // 디폴트로 설정된 재난 항목 (태풍, 호우, 폭염, 한파)
+  const [selectedDisasters, setSelectedDisasters] = useState({
+    bigButton1: '태풍',
+    bigButton2: '호우',
+    bigButton3: '폭염',
+    bigButton4: '한파',
+  });
+
+  const [activeDisasters, setActiveDisasters] = useState([
+    '태풍', '호우', '폭염', '한파'
+  ]); // 디폴트 값으로 태풍, 호우, 폭염, 한파가 선택된 상태
+
+  // 재난 설정 모달에서 사용할 데이터 (아이콘 포함)
+  const modalDataList = [
+    { id: '1', title: '침수', icon: 'water' },
+    { id: '2', title: '태풍', icon: 'storm' },
+    { id: '3', title: '호우', icon: 'rainy-outline' },
+    { id: '4', title: '낙뢰', icon: 'flash' },
+    { id: '5', title: '강풍', icon: 'weather-windy' },
+    { id: '6', title: '풍랑', icon: 'waves' },
+    { id: '7', title: '대설', icon: 'snowflake' },
+    { id: '8', title: '한파', icon: 'snow-outline' },
+    { id: '9', title: '폭염', icon: 'sunny-outline' },
+    { id: '10', title: '황사', icon: 'partly-sunny-outline' },
+    { id: '11', title: '지진', icon: 'earth' },
+    { id: '12', title: '해일', icon: 'water' },
+    { id: '13', title: '지진해일', icon: 'water' },
+    { id: '14', title: '화산폭발', icon: 'flame' },
+    { id: '15', title: '가뭄', icon: 'sunny' },
+    { id: '16', title: '홍수', icon: 'water' },
+    { id: '17', title: '조수', icon: 'waves' },
+    { id: '18', title: '산사태', icon: 'terrain' },
+    { id: '19', title: '자연우주물체추락', icon: 'planet' },
+    { id: '20', title: '우주전파재난', icon: 'radio' },
+    { id: '21', title: '조류대발생(녹조)', icon: 'leaf' },
+    { id: '22', title: '적조', icon: 'leaf' },
   ];
 
+  // 전체보기 탭에서 사용할 데이터 (아이콘 없음)
+  const allDisastersList = modalDataList.map(({ id, title }) => ({ id, title }));
+
+  // 설정을 누르면 해당 버튼에 반영
   const handleItemPress = (title) => {
-    // 클릭 시 처리할 로직
-    console.log(`${title} 항목을 눌렀습니다!`);
+    // 4개 모두 선택된 경우 추가 선택 방지
+    if (activeDisasters.length === 4 && !activeDisasters.includes(title)) {
+      return; // 선택할 수 없음
+    }
+
+    setSelectedDisasters((prevState) => {
+      const updatedDisasters = { ...prevState };
+      if (activeDisasters.includes(title)) {
+        // 이미 선택된 재난을 비활성화할 때
+        setActiveDisasters((prevList) => prevList.filter((disaster) => disaster !== title));
+        const buttonKey = Object.keys(updatedDisasters).find(key => updatedDisasters[key] === title);
+        if (buttonKey) {
+          updatedDisasters[buttonKey] = '';
+        }
+      } else {
+        // 새로운 재난 선택 시
+        const buttonKey = Object.keys(updatedDisasters).find(key => updatedDisasters[key] === '');
+        if (buttonKey) {
+          updatedDisasters[buttonKey] = title;
+          setActiveDisasters((prevList) => [...prevList, title]);
+        }
+      }
+      return updatedDisasters;
+    });
+  };
+
+  // title을 받아 해당 아이콘을 반환하는 함수
+  const getIconForDisaster = (title) => {
+    const disaster = modalDataList.find(item => item.title === title);
+    return disaster ? disaster.icon : 'help'; // 아이콘이 없을 경우 기본값으로 'help' 사용
   };
 
   const renderHeader = () => (
@@ -60,22 +104,22 @@ const App = () => {
       {/* 4개의 큰 버튼 */}
       <View style={styles.buttonRow}>
         <TouchableOpacity style={styles.bigButton}>
-          <MaterialIcons name="storm" size={65} color="black" style={styles.buttonIcon} />
-          <Text style={styles.buttonText}>태풍</Text>
+          <Ionicons name={getIconForDisaster(selectedDisasters.bigButton1)} size={65} color="black" style={styles.buttonIcon} />
+          <Text style={styles.buttonText}>{selectedDisasters.bigButton1}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.bigButton}>
-          <Ionicons name="rainy-outline" size={65} color="black" style={styles.buttonIcon} />
-          <Text style={styles.buttonText}>호우</Text>
+          <Ionicons name={getIconForDisaster(selectedDisasters.bigButton2)} size={65} color="black" style={styles.buttonIcon} />
+          <Text style={styles.buttonText}>{selectedDisasters.bigButton2}</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.buttonRow}>
         <TouchableOpacity style={styles.bigButton}>
-          <Ionicons name="sunny-outline" size={65} color="black" style={styles.buttonIcon} />
-          <Text style={styles.buttonText}>폭염</Text>
+          <Ionicons name={getIconForDisaster(selectedDisasters.bigButton3)} size={65} color="black" style={styles.buttonIcon} />
+          <Text style={styles.buttonText}>{selectedDisasters.bigButton3}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.bigButton}>
-          <Ionicons name="snow-outline" size={65} color="black" style={styles.buttonIcon} />
-          <Text style={styles.buttonText}>한파</Text>
+          <Ionicons name={getIconForDisaster(selectedDisasters.bigButton4)} size={65} color="black" style={styles.buttonIcon} />
+          <Text style={styles.buttonText}>{selectedDisasters.bigButton4}</Text>
         </TouchableOpacity>
       </View>
 
@@ -87,48 +131,55 @@ const App = () => {
   );
 
   return (
-    <>
+    <View style={styles.container}>
       <FlatList
-        style={{ flex: 1, paddingHorizontal: 15 }} // 양쪽 끝에 여백을 추가
-        data={showList ? dataList : []}
+        style={{ flex: 1, paddingHorizontal: 15 }}
+        data={showList ? allDisastersList : []}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.listItemButton}
-            onPress={() => handleItemPress(item.title)}
+            onPress={() => console.log(item.title)} // 전체보기 탭에서는 클릭 시 로그만 출력
           >
             <Text style={styles.cellText}>{item.title}</Text>
             <MaterialIcons name="chevron-right" size={24} color="black" />
           </TouchableOpacity>
         )}
-        numColumns={3}
+        numColumns={3}  // 한 줄에 3개의 아이콘 배치
         ListHeaderComponent={renderHeader} // 헤더 추가
       />
 
-      {/* 모달 구현 */}
+      {/* 재난 설정 모달 구현 */}
       <Modal
         visible={showModal}
         transparent={true}
         animationType="slide"
         onRequestClose={() => setShowModal(false)}
       >
-        {/* 모달 바깥을 눌렀을 때 모달 닫기 */}
         <TouchableWithoutFeedback onPress={() => setShowModal(false)}>
           <View style={styles.modalContainer}>
-            {/* 모달 내부는 닫히지 않도록 View로 감싸기 */}
             <TouchableWithoutFeedback>
               <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>전체 재난 리스트</Text>
-                {/* ScrollView로 감싸서 슬라이드 기능 추가 */}
-                <ScrollView>
-                  {dataList.map(item => (
+                <Text style={styles.modalTitle}>재난 설정</Text>
+                {/* 아이콘을 작은 크기로 여러 개 배치 (한 줄에 3개씩) */}
+                <ScrollView contentContainerStyle={styles.iconGrid}>
+                  {modalDataList.map(item => (
                     <TouchableOpacity
                       key={item.id}
-                      style={styles.listItemButton}
+                      style={[
+                        styles.iconButton,
+                        activeDisasters.includes(item.title) ? styles.selectedItem : null
+                      ]}
                       onPress={() => handleItemPress(item.title)}
                     >
-                      <Text style={styles.cellText}>{item.title}</Text>
-                      <MaterialIcons name="chevron-right" size={24} color="black" />
+                      <Ionicons name={item.icon} size={35} color="black" />
+                      <Text style={styles.iconText}>{item.title}</Text>
+                      {/* 항목이 선택된 경우 우상단에 해당 항목이 몇 번째 버튼에 있는지 표시 */}
+                      {activeDisasters.includes(item.title) && (
+                        <Text style={styles.positionIndicator}>
+                          {Object.keys(selectedDisasters).findIndex(key => selectedDisasters[key] === item.title) + 1}
+                        </Text>
+                      )}
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -140,16 +191,14 @@ const App = () => {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-    </>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 20,
+    flex: 1,  
     backgroundColor: '#fff',
-    paddingHorizontal: 10, // 양쪽에 여백 추가
   },
   searchContainer: {
     flexDirection: 'row',
@@ -158,7 +207,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 5,
     paddingHorizontal: 10,
-    marginBottom: 10, // 검색창과 아래 버튼 사이의 간격
+    marginBottom: 10,
     marginTop: 20,
   },
   searchInput: {
@@ -169,69 +218,65 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   settingsIcon: {
-    marginRight: 5, // 아이콘과 텍스트 사이의 간격
+    marginRight: 5,
     fontSize: 14,
   },
   settingsButton: {
-    flexDirection: 'row', // 아이콘과 텍스트를 가로로 배치
+    flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 5,
     paddingHorizontal: 10,
-    alignSelf: 'flex-end', // 오른쪽 정렬
+    alignSelf: 'flex-end',
     borderRadius: 10,
     marginBottom: 10,
-    borderWidth: 1, // 검정색 테두리 추가
-    borderColor: '#000', // 검정색 테두리
+    borderWidth: 1,
+    borderColor: '#000',
   },
   settingsButtonText: {
-    color: '#808080', // 회색 폰트 색상
+    color: '#808080',
     fontWeight: 'bold',
     fontSize: 12,
   },
-  buttonContainer: {
-    marginBottom: 20,
-  },
   buttonRow: {
-    flexDirection: 'row', // 가로로 버튼들을 배치
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20, // 버튼 사이 세로 간격 증가
+    marginBottom: 20,
   },
   bigButton: {
     flex: 1,
-    backgroundColor: '#B0E0E6', // 버튼 색상
-    paddingVertical: 60, // 버튼 세로 크기
+    backgroundColor: '#B0E0E6',
+    paddingVertical: 60,
     marginHorizontal: 10,
     alignItems: 'center',
-    justifyContent: 'flex-start', // 아이콘과 텍스트 배치를 시작 위치로 조정
+    justifyContent: 'flex-start',
     borderRadius: 10,
     position: 'relative',
   },
   buttonIcon: {
     position: 'absolute',
-    top: 10, // 아이콘을 상단에 위치
-    left: 10, // 아이콘을 좌측에 위치
+    top: 10,
+    left: 10,
   },
   buttonText: {
-    color: '#000', // 검정색 텍스트
+    color: '#000',
     fontWeight: 'bold',
     position: 'absolute',
-    bottom: 10, // 텍스트를 아래로 이동
-    right: 10,  // 텍스트를 좌측으로 이동
+    bottom: 10,
+    right: 10,
     fontSize: 20,
   },
   showAllButton: {
-    backgroundColor: '#fff', // 흰색 배경
+    backgroundColor: '#fff',
     paddingVertical: 5,
     paddingHorizontal: 10,
     alignSelf: 'flex-start',
     borderRadius: 10,
     marginBottom: 10,
-    // 그림자 효과 추가
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 3, // Android에서 그림자 효과
+    elevation: 3,
   },
   showAllButtonText: {
     color: '#000',
@@ -240,46 +285,69 @@ const styles = StyleSheet.create({
   listItemButton: {
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 15,
     backgroundColor: '#f9f9f9',
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 10,
-    marginHorizontal: 10, // 양쪽 여백 추가
-    marginVertical: 5,    // 세로 여백
+    marginHorizontal: 10,
+    marginVertical: 5,
   },
   cellText: {
     fontSize: 16,
     textAlign: 'center',
-  },
-  invisibleItem: {
-    backgroundColor: 'transparent',
-    borderWidth: 0,
+    flex: 1,
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // 반투명 배경
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     width: '80%',
-    maxHeight: '80%', // 최대 높이를 설정해서 화면에 맞추기
-    padding: 20,
+    maxHeight: '80%',
     backgroundColor: '#fff',
+    padding: 20,
     borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 5, // Android에서 그림자 효과
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 20,
+  },
+  iconGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  iconButton: {
+    width: '30%',  // 한 줄에 3개의 버튼이 배치되도록 설정
+    height: 80,  // 버튼 높이
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    backgroundColor: '#f0f0f0',  // 버튼의 배경색을 약간 회색으로 설정
+    borderWidth: 1,  // 테두리 설정
+    borderColor: '#ccc',  // 테두리 색상
+    borderRadius: 10,  // 테두리 둥글게 설정
+  },
+  iconText: {
+    fontSize: 12,
+    marginTop: 5,
+    textAlign: 'center',
+  },
+  selectedItem: {
+    backgroundColor: '#B0E0E6',
+    borderRadius: 10,
+  },
+  positionIndicator: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    fontSize: 10,
+    color: '#000',
   },
   closeButton: {
     marginTop: 20,
@@ -292,7 +360,6 @@ const styles = StyleSheet.create({
   closeButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000',
   },
 });
 
