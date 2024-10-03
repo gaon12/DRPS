@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, Modal, ScrollView, TouchableWithoutFeedback, StyleSheet } from 'react-native';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons'; // 아이콘을 위한 라이브러리
+import { View, Text, TextInput, TouchableOpacity, FlatList, Modal, ScrollView, TouchableWithoutFeedback, Image, StyleSheet } from 'react-native';
+import { MaterialIcons, Ionicons, FontAwesome, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 
 const App = () => {
-  const [showList, setShowList] = useState(false);
+  const [showList, setShowList] = useState(false); // 전체보기 리스트 표시 여부
   const [showModal, setShowModal] = useState(false); // 모달 표시 상태
   const [searchText, setSearchText] = useState('');
+  const [apiData, setApiData] = useState(null); // API에서 받아온 데이터
 
-  // 디폴트로 설정된 재난 항목 (태풍, 호우, 폭염, 한파)
   const [selectedDisasters, setSelectedDisasters] = useState({
     bigButton1: '태풍',
     bigButton2: '호우',
@@ -15,58 +15,83 @@ const App = () => {
     bigButton4: '한파',
   });
 
-  const [activeDisasters, setActiveDisasters] = useState([
-    '태풍', '호우', '폭염', '한파'
-  ]); // 디폴트 값으로 태풍, 호우, 폭염, 한파가 선택된 상태
+  const [activeDisasters, setActiveDisasters] = useState(['태풍', '호우', '폭염', '한파']);
 
-  // 재난 설정 모달에서 사용할 데이터 (아이콘 포함)
   const modalDataList = [
-    { id: '1', title: '침수', icon: 'water' },
-    { id: '2', title: '태풍', icon: 'storm' },
-    { id: '3', title: '호우', icon: 'rainy-outline' },
-    { id: '4', title: '낙뢰', icon: 'flash' },
-    { id: '5', title: '강풍', icon: 'weather-windy' },
-    { id: '6', title: '풍랑', icon: 'waves' },
-    { id: '7', title: '대설', icon: 'snowflake' },
-    { id: '8', title: '한파', icon: 'snow-outline' },
-    { id: '9', title: '폭염', icon: 'sunny-outline' },
-    { id: '10', title: '황사', icon: 'partly-sunny-outline' },
-    { id: '11', title: '지진', icon: 'earth' },
-    { id: '12', title: '해일', icon: 'water' },
-    { id: '13', title: '지진해일', icon: 'water' },
-    { id: '14', title: '화산폭발', icon: 'flame' },
-    { id: '15', title: '가뭄', icon: 'sunny' },
-    { id: '16', title: '홍수', icon: 'water' },
-    { id: '17', title: '조수', icon: 'waves' },
-    { id: '18', title: '산사태', icon: 'terrain' },
-    { id: '19', title: '자연우주물체추락', icon: 'planet' },
-    { id: '20', title: '우주전파재난', icon: 'radio' },
-    { id: '21', title: '조류대발생(녹조)', icon: 'leaf' },
-    { id: '22', title: '적조', icon: 'leaf' },
+    { id: '1', title: '침수', icon: 'home-flood', iconType: 'MaterialCommunityIcons' },
+    { id: '2', title: '태풍', icon: 'weather-hurricane', iconType: 'MaterialCommunityIcons' },
+    { id: '3', title: '호우', icon: 'rainy-outline', iconType: 'Ionicons' },
+    { id: '4', title: '낙뢰', icon: 'thunderstorm-outline', iconType: 'Ionicons' },
+    { id: '5', title: '강풍', icon: 'weather-windy', iconType: 'MaterialCommunityIcons' },
+    { id: '6', title: '풍랑', icon: 'waves', iconType: 'MaterialCommunityIcons' },
+    { id: '7', title: '대설', icon: 'weather-snowy-heavy', iconType: 'MaterialCommunityIcons' },
+    { id: '8', title: '한파', icon: 'snow', iconType: 'Ionicons' },
+    { id: '9', title: '폭염', icon: 'sunny-outline', iconType: 'Ionicons' },
+    { id: '10', title: '황사', icon: 'partly-sunny-outline', iconType: 'Ionicons' },
+    { id: '11', title: '지진', icon: 'house-damage', iconType: 'FontAwesome5' },
+    { id: '12', title: '해일', icon: 'water', iconType: 'Ionicons' },
+    { id: '13', title: '지진해일', icon: 'water', iconType: 'Ionicons' },
+    { id: '14', title: '화산폭발', icon: 'flame', iconType: 'Ionicons' },
+    { id: '15', title: '가뭄', icon: 'sunny', iconType: 'Ionicons' },
+    { id: '16', title: '홍수', icon: 'water', iconType: 'Ionicons' },
+    { id: '17', title: '조수', icon: 'waves', iconType: 'Ionicons' },
+    { id: '18', title: '산사태', icon: 'terrain', iconType: 'Ionicons' },
+    { id: '19', title: '자연우주물체추락', icon: 'planet', iconType: 'Ionicons' },
+    { id: '20', title: '우주전파재난', icon: 'radio', iconType: 'Ionicons' },
+    { id: '21', title: '조류대발생(녹조)', icon: 'leaf', iconType: 'Ionicons' },
+    { id: '22', title: '적조', icon: 'leaf', iconType: 'Ionicons' },
   ];
 
-  // 전체보기 탭에서 사용할 데이터 (아이콘 없음)
   const allDisastersList = modalDataList.map(({ id, title }) => ({ id, title }));
 
-  // 설정을 누르면 해당 버튼에 반영
+  // 아이콘 컴포넌트 동적으로 가져오기
+  const getIconComponent = (iconType, iconName, size = 35, color = 'black', style = {}) => {
+    if (iconType === 'Ionicons') {
+      return <Ionicons name={iconName} size={size} color={color} style={style} />;
+    } else if (iconType === 'FontAwesome') {
+      return <FontAwesome name={iconName} size={size} color={color} style={style} />;
+    } else if (iconType === 'MaterialCommunityIcons') {
+      return <MaterialCommunityIcons name={iconName} size={size} color={color} style={style} />;
+    } else if (iconType === 'FontAwesome5') {
+      return <FontAwesome5 name={iconName} size={size} color={color} style={style} />;
+    }else {
+      console.warn(`Unknown icon type: ${iconType}`); // 잘못된 아이콘 타입 경고
+      return null;
+    }
+  };
+
+  // API 요청 함수 (returnfile=webp, returntype=base64 기본값 설정)
+  const fetchDisasterInfo = async (disaster) => {
+    try {
+      const response = await fetch(
+        'https://apis.uiharu.dev/drps/NationalActionTips/api.php?category=naturaldisaster&id=01001&returnfile=pdf&returntype=base64'
+      );
+      const data = await response.json(); // base64 형식의 데이터를 받아온다고 가정
+      if (data.returntype) {
+        setApiData(data.returntype); // 데이터를 상태에 저장
+      } else {
+        console.log('API 요청 실패:', data);
+      }
+    } catch (error) {
+      console.error('API 요청 중 오류 발생:', error);
+    }
+  };
+
   const handleItemPress = (title) => {
-    // 4개 모두 선택된 경우 추가 선택 방지
     if (activeDisasters.length === 4 && !activeDisasters.includes(title)) {
-      return; // 선택할 수 없음
+      return;
     }
 
     setSelectedDisasters((prevState) => {
       const updatedDisasters = { ...prevState };
       if (activeDisasters.includes(title)) {
-        // 이미 선택된 재난을 비활성화할 때
         setActiveDisasters((prevList) => prevList.filter((disaster) => disaster !== title));
-        const buttonKey = Object.keys(updatedDisasters).find(key => updatedDisasters[key] === title);
+        const buttonKey = Object.keys(updatedDisasters).find((key) => updatedDisasters[key] === title);
         if (buttonKey) {
           updatedDisasters[buttonKey] = '';
         }
       } else {
-        // 새로운 재난 선택 시
-        const buttonKey = Object.keys(updatedDisasters).find(key => updatedDisasters[key] === '');
+        const buttonKey = Object.keys(updatedDisasters).find((key) => updatedDisasters[key] === '');
         if (buttonKey) {
           updatedDisasters[buttonKey] = title;
           setActiveDisasters((prevList) => [...prevList, title]);
@@ -76,54 +101,91 @@ const App = () => {
     });
   };
 
-  // title을 받아 해당 아이콘을 반환하는 함수
   const getIconForDisaster = (title) => {
-    const disaster = modalDataList.find(item => item.title === title);
-    return disaster ? disaster.icon : 'help'; // 아이콘이 없을 경우 기본값으로 'help' 사용
+    const disaster = modalDataList.find((item) => item.title === title);
+    return disaster ? disaster.icon : 'help';
+  };
+
+  const getButtonStyle = (title) => {
+    return activeDisasters.includes(title) ? { backgroundColor: '#B0E0E6' } : { backgroundColor: '#f0f0f0' };
+  };
+
+  // 선택된 재난 항목의 순번을 가져오는 함수
+  const getSelectedItemIndex = (title) => {
+    return activeDisasters.indexOf(title) + 1; // 인덱스는 0부터 시작하므로 +1
+  };
+
+  const renderApiData = () => {
+    if (apiData) {
+      const webpUri = `data:image/webp;base64,${apiData}`;
+      return <Image source={{ uri: webpUri }} style={{ width: 300, height: 300, resizeMode: 'contain' }} />;
+    }
+    return null;
   };
 
   const renderHeader = () => (
     <>
-      {/* 검색창 + 돋보기 아이콘 추가 */}
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
           placeholder="검색어를 입력하세요"
           value={searchText}
-          onChangeText={text => setSearchText(text)}
+          onChangeText={(text) => setSearchText(text)}
         />
         <MaterialIcons name="search" size={24} color="black" style={styles.searchIcon} />
       </View>
 
-      {/* 재난 설정 버튼 */}
       <TouchableOpacity style={styles.settingsButton} onPress={() => setShowModal(true)}>
-        <Ionicons name="settings-sharp" size={24} color="black" style={styles.settingsIcon} />
+        <Ionicons name="settings-sharp" size={24} color="black" />
         <Text style={styles.settingsButtonText}>재난 설정</Text>
       </TouchableOpacity>
 
-      {/* 4개의 큰 버튼 */}
       <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.bigButton}>
-          <Ionicons name={getIconForDisaster(selectedDisasters.bigButton1)} size={65} color="black" style={styles.buttonIcon} />
+        <TouchableOpacity style={[styles.bigButton, getButtonStyle(selectedDisasters.bigButton1)]} onPress={() => fetchDisasterInfo(selectedDisasters.bigButton1)}>
+          {getIconComponent(
+            modalDataList.find(item => item.title === selectedDisasters.bigButton1)?.iconType || 'Ionicons',
+            modalDataList.find(item => item.title === selectedDisasters.bigButton1)?.icon || 'help',
+            65, // 아이콘 크기
+            'black', // 아이콘 색상
+            styles.buttonIcon // 아이콘 스타일
+          )}
           <Text style={styles.buttonText}>{selectedDisasters.bigButton1}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.bigButton}>
-          <Ionicons name={getIconForDisaster(selectedDisasters.bigButton2)} size={65} color="black" style={styles.buttonIcon} />
+        <TouchableOpacity style={[styles.bigButton, getButtonStyle(selectedDisasters.bigButton2)]} onPress={() => fetchDisasterInfo(selectedDisasters.bigButton2)}>
+          {getIconComponent(
+            modalDataList.find(item => item.title === selectedDisasters.bigButton2)?.iconType || 'Ionicons',
+            modalDataList.find(item => item.title === selectedDisasters.bigButton2)?.icon || 'help',
+            65,
+            'black',
+            styles.buttonIcon
+          )}
           <Text style={styles.buttonText}>{selectedDisasters.bigButton2}</Text>
         </TouchableOpacity>
       </View>
+
       <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.bigButton}>
-          <Ionicons name={getIconForDisaster(selectedDisasters.bigButton3)} size={65} color="black" style={styles.buttonIcon} />
+        <TouchableOpacity style={[styles.bigButton, getButtonStyle(selectedDisasters.bigButton3)]} onPress={() => fetchDisasterInfo(selectedDisasters.bigButton3)}>
+          {getIconComponent(
+            modalDataList.find(item => item.title === selectedDisasters.bigButton3)?.iconType || 'Ionicons',
+            modalDataList.find(item => item.title === selectedDisasters.bigButton3)?.icon || 'help',
+            65,
+            'black',
+            styles.buttonIcon
+          )}
           <Text style={styles.buttonText}>{selectedDisasters.bigButton3}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.bigButton}>
-          <Ionicons name={getIconForDisaster(selectedDisasters.bigButton4)} size={65} color="black" style={styles.buttonIcon} />
+        <TouchableOpacity style={[styles.bigButton, getButtonStyle(selectedDisasters.bigButton4)]} onPress={() => fetchDisasterInfo(selectedDisasters.bigButton4)}>
+          {getIconComponent(
+            modalDataList.find(item => item.title === selectedDisasters.bigButton4)?.iconType || 'Ionicons',
+            modalDataList.find(item => item.title === selectedDisasters.bigButton4)?.icon || 'help',
+            65,
+            'black',
+            styles.buttonIcon
+          )}
           <Text style={styles.buttonText}>{selectedDisasters.bigButton4}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* 전체보기 버튼 */}
       <TouchableOpacity style={styles.showAllButton} onPress={() => setShowList(!showList)}>
         <Text style={styles.showAllButtonText}>전체보기</Text>
       </TouchableOpacity>
@@ -131,54 +193,38 @@ const App = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <FlatList
         style={{ flex: 1, paddingHorizontal: 15 }}
         data={showList ? allDisastersList : []}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.listItemButton}
-            onPress={() => console.log(item.title)} // 전체보기 탭에서는 클릭 시 로그만 출력
-          >
+          <TouchableOpacity style={styles.listItemButton} onPress={() => fetchDisasterInfo(item.title)}>
             <Text style={styles.cellText}>{item.title}</Text>
             <MaterialIcons name="chevron-right" size={24} color="black" />
           </TouchableOpacity>
         )}
-        numColumns={3}  // 한 줄에 3개의 아이콘 배치
-        ListHeaderComponent={renderHeader} // 헤더 추가
+        numColumns={3}
+        ListHeaderComponent={renderHeader}
       />
 
-      {/* 재난 설정 모달 구현 */}
-      <Modal
-        visible={showModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowModal(false)}
-      >
+      <Modal visible={showModal} transparent={true} animationType="slide" onRequestClose={() => setShowModal(false)}>
         <TouchableWithoutFeedback onPress={() => setShowModal(false)}>
           <View style={styles.modalContainer}>
             <TouchableWithoutFeedback>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>재난 설정</Text>
-                {/* 아이콘을 작은 크기로 여러 개 배치 (한 줄에 3개씩) */}
                 <ScrollView contentContainerStyle={styles.iconGrid}>
-                  {modalDataList.map(item => (
+                  {modalDataList.map((item) => (
                     <TouchableOpacity
                       key={item.id}
-                      style={[
-                        styles.iconButton,
-                        activeDisasters.includes(item.title) ? styles.selectedItem : null
-                      ]}
+                      style={[styles.iconButton, getButtonStyle(item.title)]}
                       onPress={() => handleItemPress(item.title)}
                     >
-                      <Ionicons name={item.icon} size={35} color="black" />
+                      {getIconComponent(item.iconType, item.icon)}
                       <Text style={styles.iconText}>{item.title}</Text>
-                      {/* 항목이 선택된 경우 우상단에 해당 항목이 몇 번째 버튼에 있는지 표시 */}
                       {activeDisasters.includes(item.title) && (
-                        <Text style={styles.positionIndicator}>
-                          {Object.keys(selectedDisasters).findIndex(key => selectedDisasters[key] === item.title) + 1}
-                        </Text>
+                        <Text style={styles.positionIndicator}>{getSelectedItemIndex(item.title)}</Text> // 선택된 항목에 순번 표시
                       )}
                     </TouchableOpacity>
                   ))}
@@ -191,6 +237,8 @@ const App = () => {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+
+      {apiData && <View style={{ flex: 1, padding: 10, backgroundColor: '#f9f9f9' }}>{renderApiData()}</View>}
     </View>
   );
 };
