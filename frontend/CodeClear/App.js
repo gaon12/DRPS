@@ -14,7 +14,8 @@ import NaturalDisasters from './tabs/SafetyGuide/pages/NaturalDisasters';
 import SocialDisasters from './tabs/SafetyGuide/pages/SocialDisasters';
 import LifeDisasters from './tabs/SafetyGuide/pages/LifeDisasters';
 import EmergencyDisasters from './tabs/SafetyGuide/pages/EmergencyDisasters';
-import CheckList from './CheckList';
+import CheckList from './tabs/SafetyGuide/pages/CheckList';
+import EvacMain from './tabs/SafetyGuide/EvacSimulator/EvacMain'
 import {SettingsProvider} from './Context';
 
 const Stack = createStackNavigator();
@@ -116,6 +117,8 @@ const App = () => {
                         component={NewsDetail}
                         options={{title: 'News Detail'}}
                     />
+                    <Stack.Screen name="CheckList" component={CheckList}/>
+                    <Stack.Screen name="EvacMain" component={EvacMain}/>
                 </Stack.Navigator>
             </NavigationContainer>
         </SettingsProvider>

@@ -43,7 +43,7 @@ const ActionGuidelines = ({ navigation }) => {
     <ScrollView style={{ padding: 10 }}>
       {guidelines.map((guideline) => (
         <TouchableOpacity
-          key={guideline.id}
+          key={`guideline-${guideline.id}`}
           onPress={() => navigation.navigate(guideline.screen)}
         >
           <Card style={{ marginVertical: 10, backgroundColor: guideline.backgroundColor }}>
