@@ -64,7 +64,7 @@ const App = () => {
   const fetchDisasterInfo = async (disaster) => {
     try {
       const response = await fetch(
-        'https://apis.uiharu.dev/drps/NationalActionTips/api.php?category=naturaldisaster&id=01001&returnfile=pdf&returntype=base64'
+        'https://apis.uiharu.dev/drps/NationalActionTips/api.php?category=naturaldisaster&id=01002&returnfile=png&returntype=base64'
       );
       const data = await response.json(); // base64 형식의 데이터를 받아온다고 가정
       if (data.returntype) {
@@ -117,7 +117,7 @@ const App = () => {
 
   const renderApiData = () => {
     if (apiData) {
-      const webpUri = `data:image/webp;base64,${apiData}`;
+      const webpUri = `data:image/png;base64,${apiData}`;
       return <Image source={{ uri: webpUri }} style={{ width: 300, height: 300, resizeMode: 'contain' }} />;
     }
     return null;
