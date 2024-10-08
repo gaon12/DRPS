@@ -1,15 +1,15 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 
 const CheckList = () => {
   const items = [
-    { icon: 'bottle-tonic', text: '중요 물품' },
-    { icon: 'door', text: '공통 재해' },   
-    { icon: 'clipboard-check', text: '나만의 목록' },
-    { icon: 'bag-checked', text: '비상용 생존가방에' },
-    { icon: 'weather-lightning-rainy', text: '지역 재해 대비' },
+    { id: 1, icon: 'bottle-tonic', text: '중요 물품' },
+    { id: 2, icon: 'door', text: '공통 재해' },
+    { id: 3, icon: 'clipboard-check', text: '나만의 목록' },
+    { id: 4, icon: 'bag-checked', text: '비상용 생존가방에' },
+    { id: 5, icon: 'weather-lightning-rainy', text: '지역 재해 대비' },
   ];
 
   return (
@@ -18,9 +18,9 @@ const CheckList = () => {
       <View style={styles.header}>
         <Text style={styles.headerText}>체크 목록</Text>
       </View>
-      <ScrollView>
-        {items.map((item, index) => (
-          <TouchableOpacity key={index} style={styles.itemContainer}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+        {items.map((item) => (
+          <TouchableOpacity key={`checklist-item-${item.id}`} style={styles.itemContainer}>
             <View style={styles.iconWrapper}>
               <MaterialCommunityIcons name={item.icon} size={40} color='#ffcc00' />
             </View>
