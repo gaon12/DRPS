@@ -1,32 +1,70 @@
 # Shelters Data API
 
 ## 개요
-이 폴더는 대피소 관련 데이터를 수집하고 데이터베이스에 저장하며, 사용자 요청에 따라 대피소 데이터를 제공하는 기능을 수행합니다. 공공 API를 사용하여 데이터를 수집하고, MySQL 데이터베이스에 저장합니다.
+이 API는 대피소 데이터를 수집하고, 사용자 요청에 따라 필터링된 대피소 정보를 제공합니다. 지진 대피소, 민방위 대피소, 쓰나미 대피소 데이터를 공공 API와 네이버 지도 API를 사용해 수집하고 MySQL 데이터베이스에 저장합니다.
 
-## 주요 파일 설명
+## 엔드포인트
+- **URL:** `/api.php`
+- **Method:** `GET`
 
-- **.env**: 네이버 지도 API 키를 저장하는 환경 설정 파일입니다.
-- **api.php**: 대피소 데이터를 조회하고 JSON 형식으로 반환하는 API 엔드포인트입니다.
-- **composer.json** / **composer.lock**: 의존성 관리 파일로, PHPSpreadsheet와 Dotenv 패키지를 관리합니다.
-- **db_config.php**: 데이터베이스 연결 설정 파일입니다.
-- **earthshake_craw.php**, **minbangwee_craw.php**, **tsunami_craw.php**: 각각 지진 대피소, 민방위 대피소, 쓰나미 대피소 데이터를 API에서 가져와 데이터베이스에 저장하는 크롤러 스크립트입니다.
-- **update_coordinates.php**: 네이버 지도 API를 사용하여 위경도 정보를 업데이트하는 스크립트입니다.
+## 요청 파라미터
 
-## 사용 방법
+| 파라미터         | 필수 여부 | 설명                                                  | 예시 값                 |
+|------------------|-----------|------------------------------------------------------|------------------------|
+| `ShelterType`    | 필수      | 조회할 대피소 유형을 지정합니다.                      | `CivilDefenseShelters`, `EarthquakeShelters`, `TsunamiShelters` |
+| `ShelterDetail`  | 선택      | 특정 대피소의 상세 정보를 조회합니다.                 | `1234`                 |
+| `latitude`       | 필수      | 사용자의 현재 위도 값을 지정합니다.                   | `37.5665`              |
+| `longitude`      | 필수      | 사용자의 현재 경도 값을 지정합니다.                   | `126.9780`             |
+| `pageNo`         | 선택      | 페이지 번호를 지정합니다. 기본값은 `1`입니다.         | `1`                    |
+| `numOfRows`      | 선택      | 한 페이지당 대피소 항목의 개수를 지정합니다. 기본값은 `10`입니다. | `5`             |
+| `distance`       | 선택      | 검색할 대피소의 최대 반경을 미터 단위로 지정합니다. 기본값은 `5000`입니다. | `1000` |
 
-1. **환경 변수 설정**:
-   - `.env` 파일에 네이버 API 키를 설정해야 합니다.
-   - 예시:
-     ```
-     NAVER_CLIENT_ID=YOUR_CLIENT_ID
-     NAVER_CLIENT_SECRET=YOUR_CLIENT_SECRET
-     ```
+### 요청 예시
+```
+GET /api.php?ShelterType=EarthquakeShelters&latitude=37.5665&longitude=126.9780&pageNo=1&numOfRows=5&distance=5000
+```
 
-2. **데이터베이스 설정**:
-   - `db_config.php` 파일에 데이터베이스 정보를 입력합니다.
 
-3. **대피소 데이터 수집**:
-   - 각각의 크롤러 파일 (`earthshake_craw.php`, `minbangwee_craw.php`, `tsunami_craw.php`)을 실행하여 데이터를 수집하고 데이터베이스에 저장합니다.
+## 응답 형식
+성공적인 요청 시 응답은 다음과 같은 JSON 형식으로 반환됩니다:
 
-4. **API 사용**:
-   - `api.php` 파일을 호출하여 대피소 데이터를 조회할 수 있습니다.
+```json
+{
+  "StatusCode": 200,
+  "message": "Success to get shelters info",
+  "data": [
+    {
+      "id": "1234",
+      "address": "서울특별시 중구 세종대로",
+      "latitude": "37.5665",
+      "longitude": "126.9780",
+      "distance": "800"
+    }
+  ]
+}
+```
+
+## 응답 필드 설명
+| 필드      | 설명     |
+|------|------------|
+| `StatusCode`  |	요청 처리 상태 코드 (200, 404, 500 등) |
+| `message`     | 요청 처리 결과 메시지   |
+| `data`        | 	필터링된 대피소 데이터 리스트 |
+
+## 에러 코드
+| 필드      | 설명     |
+|------|------------|
+| `400`  |		잘못된 파라미터 값이 전달된 경우 발생합니다. |
+| `404`     | 요청한 대피소 데이터를 찾을 수 없는 경우 발생합니다.   |
+| `500`        | 서버 내부 오류가 발생한 경우 발생합니다. |
+
+## 데이터 수집 방법
+* `earthshake_craw.php`, `minbangwee_craw.php`, `tsunami_craw.php` 파일을 실행하여 각 대피소 데이터를 수집하고 데이터베이스에 저장합니다.
+* `update_coordinates.php` 파일을 사용하여 네이버 지도 API로 위경도 정보를 업데이트합니다.
+
+## 종속성 및 설치
+* Composer: 종속성 관리를 위해 사용되며, `composer install` 명령어로 필요한 라이브러리를 설치합니다.
+* `.env` 파일에서 네이버 API 키를 설정해야 합니다.
+
+## 참고 사항
+* 데이터베이스 설정 및 API 호출 시 에러가 발생하면 로그를 확인하세요.
