@@ -14,7 +14,7 @@ import NaturalDisasters from './tabs/SafetyGuide/pages/NaturalDisasters';
 import SocialDisasters from './tabs/SafetyGuide/pages/SocialDisasters';
 import LifeDisasters from './tabs/SafetyGuide/pages/LifeDisasters';
 import EmergencyDisasters from './tabs/SafetyGuide/pages/EmergencyDisasters';
-import CheckList from './tabs/SafetyGuide/pages/CheckList';
+import CheckList from './tabs/SafetyGuide/CheckList';
 import EvacMain from './tabs/SafetyGuide/EvacSimulator/EvacMain'
 import EvacwithAddress from './tabs/SafetyGuide/EvacSimulator/EvacwithAddress'
 import EvacwithMap from './tabs/SafetyGuide/EvacSimulator/EvacwithMap'
