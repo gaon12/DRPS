@@ -1,8 +1,8 @@
 import React from 'react';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import Tab1 from './tabs/1';
+import Tab1 from './tabs/DisasterMSG';
 import Tab2 from './tabs/News';
-import Tab3 from './tabs/3';
+import Tab3 from './tabs/Weather';
 
 const Tab = createMaterialTopTabNavigator();
 
