@@ -10,24 +10,18 @@ const ApiScreen = ({ route }) => {
     const fetchDisasterInfo = async () => {
       try {
         const response = await fetch(
-          'https://apis.uiharu.dev/drps/NationalActionTips/api.php?category=naturaldisaster&id=01003&returnfile=webp&returntype=base64' // png -> webp로 수정
+          'https://apis.uiharu.dev/drps/NationalActionTips/api.php?category=naturaldisaster&id=01011&returnfile=webp&returntype=base64'
         );
         const data = await response.json();
   
-        console.log('API response data:', data);
-  
         if (data && data.data) {
           const decodedText = decodeURIComponent(escape(atob(data.data.text))); // Base64 텍스트 디코딩
-          console.log('Decoded text:', decodedText);
           
-          // 이미지 데이터가 있는지 확인
-          if (data.data.image) {
-            const imageUri = `data:image/webp;base64,${data.data.image}`; // webp 이미지 처리
-            console.log('Image URI:', imageUri);
-            setApiData({ text: decodedText, image: imageUri });
-          } else {
-            console.error('이미지 데이터가 없습니다.');
-          }
+          // Base64 이미지 데이터를 URI로 변환 (webp 형식으로 변경)
+          const imageUri = `data:image/webp;base64,${data.data.image}`; // 이미지 데이터가 있는 경우
+          setApiData({ text: decodedText, image: imageUri });
+        } else {
+          console.error('API 응답에 텍스트 또는 이미지 데이터가 없습니다.');
         }
       } catch (error) {
         console.error('API 요청 중 오류 발생:', error);
@@ -36,7 +30,7 @@ const ApiScreen = ({ route }) => {
   
     fetchDisasterInfo();
   }, [disasterType]);
-  
+
   return (
     <View style={styles.container}>
       <View style={styles.tabContainer}>
