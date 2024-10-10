@@ -13,6 +13,7 @@ import LicenseList from './tabs/Settings/pages/VersionInfo/Opensource';
 import NaturalDisasters from './tabs/SafetyGuide/pages/NaturalDisasters';
 import SocialDisasters from './tabs/SafetyGuide/pages/SocialDisasters';
 import LifeDisasters from './tabs/SafetyGuide/pages/LifeDisasters';
+import ApiScreen from './tabs/SafetyGuide/pages/ApiScreen';
 import EmergencyDisasters from './tabs/SafetyGuide/pages/EmergencyDisasters';
 import CheckList from './tabs/SafetyGuide/CheckList';
 import EvacMain from './tabs/SafetyGuide/EvacSimulator/EvacMain'
@@ -113,6 +114,7 @@ const App = () => {
                     <Stack.Screen name="SocialDisasters" component={SocialDisasters}/>
                     <Stack.Screen name="LifeDisasters" component={LifeDisasters}/>
                     <Stack.Screen name="EmergencyDisasters" component={EmergencyDisasters}/>
+                    <Stack.Screen name="ApiScreen" component={ApiScreen}/>
                     {/* 뉴스 상세 화면 */}
                     <Stack.Screen
                         name="NewsDetail"
