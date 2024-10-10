@@ -16,6 +16,8 @@ import LifeDisasters from './tabs/SafetyGuide/pages/LifeDisasters';
 import EmergencyDisasters from './tabs/SafetyGuide/pages/EmergencyDisasters';
 import CheckList from './tabs/SafetyGuide/pages/CheckList';
 import EvacMain from './tabs/SafetyGuide/EvacSimulator/EvacMain'
+import EvacwithAddress from './tabs/SafetyGuide/EvacSimulator/EvacwithAddress'
+import EvacwithMap from './tabs/SafetyGuide/EvacSimulator/EvacwithMap'
 import {SettingsProvider} from './Context';
 
 const Stack = createStackNavigator();
@@ -117,8 +119,14 @@ const App = () => {
                         component={NewsDetail}
                         options={{title: 'News Detail'}}
                     />
+                    {/* 체크리스트와 피난시뮬레이션 */}
                     <Stack.Screen name="CheckList" component={CheckList}/>
                     <Stack.Screen name="EvacMain" component={EvacMain}/>
+
+                    {/* 피난시뮬레이션 관련 */}
+                    <Stack.Screen name="EvacwithAddress" component={EvacwithAddress}/>
+                    <Stack.Screen name="EvacwithMap" component={EvacwithMap}/>
+
                 </Stack.Navigator>
             </NavigationContainer>
         </SettingsProvider>
