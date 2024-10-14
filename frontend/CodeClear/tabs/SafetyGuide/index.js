@@ -10,6 +10,7 @@ const ActionGuidelines = ({ navigation }) => {
       title: '자연 재난',
       description: '지진, 홍수 등 자연 재난에 대한 국민행동요령',
       backgroundColor: '#B0E0E6',
+      iconType: 'Ionicons', // 아이콘 타입을 명시적으로 구분
       icon: 'earth-outline',
       screen: 'NaturalDisasters',
     },
@@ -18,6 +19,7 @@ const ActionGuidelines = ({ navigation }) => {
       title: '사회 재난',
       description: '화재, 산업재해 등 사회 재난에 대한 국민행동요령',
       backgroundColor: '#FFD700',
+      iconType: 'Ionicons',
       icon: 'alert-circle-outline',
       screen: 'SocialDisasters',
     },
@@ -26,6 +28,7 @@ const ActionGuidelines = ({ navigation }) => {
       title: '생활 재난',
       description: '폭염, 한파 등 생활 재난에 대한 국민행동요령',
       backgroundColor: '#98FB98',
+      iconType: 'Ionicons',
       icon: 'sunny-outline',
       screen: 'LifeDisasters',
     },
@@ -34,28 +37,44 @@ const ActionGuidelines = ({ navigation }) => {
       title: '비상 재난',
       description: '테러, 전쟁 등 비상 재난에 대한 국민행동요령',
       backgroundColor: '#FFB6C1',
+      iconType: 'Ionicons',
       icon: 'medical-outline',
       screen: 'EmergencyDisasters',
+    },
+    {
+      id: 5,
+      title: '생존 기술',
+      description: '생존에 필요한 기술들',
+      backgroundColor: '#FFA07A',
+      iconType: 'FontAwesome5', // 아이콘 타입 변경
+      icon: 'hand-holding-medical', // FontAwesome5 아이콘
+      screen: 'SurvivalSkills',
     },
   ];
 
   return (
     <ScrollView style={{ padding: 10 }}>
       {guidelines.map((guideline) => (
-        <TouchableOpacity
-          key={`guideline-${guideline.id}`}
-          onPress={() => navigation.navigate(guideline.screen)}
-        >
-          <Card style={{ marginVertical: 10, backgroundColor: guideline.backgroundColor }}>
-            <Card.Content style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name={guideline.icon} size={30} color="black" style={{ marginRight: 10 }} />
-              <View>
-                <Title style={{ fontWeight: 'bold' }}>{guideline.title}</Title>
-                <Paragraph>{guideline.description}</Paragraph>
-              </View>
-            </Card.Content>
-          </Card>
-          {guideline.id === 4 && (
+        <View key={`guideline-${guideline.id}`}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate(guideline.screen)}
+          >
+            <Card style={{ marginVertical: 10, backgroundColor: guideline.backgroundColor }}>
+              <Card.Content style={{ flexDirection: 'row', alignItems: 'center' }}>
+                {guideline.iconType === 'Ionicons' ? (
+                  <Ionicons name={guideline.icon} size={30} color="black" style={{ marginRight: 10 }} />
+                ) : (
+                  <FontAwesome5 name={guideline.icon} size={30} color="black" style={{ marginRight: 10 }} />
+                )}
+                <View>
+                  <Title style={{ fontWeight: 'bold' }}>{guideline.title}</Title>
+                  <Paragraph>{guideline.description}</Paragraph>
+                </View>
+              </Card.Content>
+            </Card>
+          </TouchableOpacity>
+
+          {guideline.id === 5 && (
             <View>
               <Divider style={{ marginVertical: 10, borderWidth: 1, borderStyle: 'dashed', borderColor: '#000' }} />
               <View style={styles.buttonContainer}>
@@ -77,7 +96,7 @@ const ActionGuidelines = ({ navigation }) => {
               </View>
             </View>
           )}
-        </TouchableOpacity>
+        </View>
       ))}
     </ScrollView>
   );

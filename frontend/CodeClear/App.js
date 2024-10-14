@@ -15,6 +15,7 @@ import SocialDisasters from './tabs/SafetyGuide/pages/SocialDisasters';
 import LifeDisasters from './tabs/SafetyGuide/pages/LifeDisasters';
 import ApiScreen from './tabs/SafetyGuide/pages/ApiScreen';
 import EmergencyDisasters from './tabs/SafetyGuide/pages/EmergencyDisasters';
+import SurvivalSkills from './tabs/SafetyGuide/pages/SurvivalSkills';
 import CheckList from './tabs/SafetyGuide/CheckList';
 import EvacMain from './tabs/SafetyGuide/EvacSimulator/EvacMain'
 import EvacwithAddress from './tabs/SafetyGuide/EvacSimulator/EvacwithAddress'
@@ -114,6 +115,7 @@ const App = () => {
                     <Stack.Screen name="SocialDisasters" component={SocialDisasters}/>
                     <Stack.Screen name="LifeDisasters" component={LifeDisasters}/>
                     <Stack.Screen name="EmergencyDisasters" component={EmergencyDisasters}/>
+                    <Stack.Screen name="SurvivalSkills" component={SurvivalSkills}/>
                     <Stack.Screen name="ApiScreen" component={ApiScreen}/>
                     {/* 뉴스 상세 화면 */}
                     <Stack.Screen
