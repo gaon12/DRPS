@@ -3,11 +3,13 @@ import { View, Image, ScrollView, Dimensions, StyleSheet, TouchableOpacity, Text
 import { Provider as PaperProvider, Appbar, Modal, Portal, Button, ProgressBar } from 'react-native-paper';
 import axios from 'axios';
 import { PinchGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
+import Markdown from 'react-native-markdown-display'; // 마크다운 렌더링 라이브러리
 
 const { width, height } = Dimensions.get('window');
 
-export default function App() {
-  const [pages, setPages] = useState([]);
+export default function App({ navigation }) {
+  const [pages, setPages] = useState([]); // 이미지 데이터를 저장할 상태
+  const [textContent, setTextContent] = useState(''); // 텍스트 데이터를 저장할 상태
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,14 +29,20 @@ export default function App() {
     try {
       const response = await axios.get('https://apis.uiharu.dev/drps/NationalActionTips/api.php?category=naturaldisaster&id=01011&returnfile=webp');
       const { data } = response.data;
+      
+      // 이미지 데이터를 처리
       const pageData = Object.entries(data)
         .filter(([key]) => key.startsWith('webp'))
         .sort(([a], [b]) => parseInt(a.slice(4)) - parseInt(b.slice(4)))
         .map(([_, value]) => `data:image/webp;base64,${value}`);
       
+      // 텍스트 데이터를 처리 (마크다운 형태로 가져옴)
+      const decodedText = decodeURIComponent(escape(atob(data.text)));
+      
       setPages(pageData);
       setTotalPages(pageData.length);
       setFileName('Natural Disaster Guide');
+      setTextContent(decodedText); // 텍스트 데이터를 저장
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching pages:', error);
@@ -161,7 +169,7 @@ export default function App() {
         <View style={styles.container}>
           <Appbar.Header>
             {isPageViewMode && (
-              <Appbar.BackAction onPress={handleBackPress} />
+              <Appbar.BackAction onPress={() => navigation.goBack()} /> // 뒤로가기 버튼 처리
             )}
             <Appbar.Content title={fileName} subtitle={`${currentPage}/${totalPages}`} />
             <Appbar.Action icon="menu" onPress={() => setModalVisible(true)} />
@@ -189,7 +197,9 @@ export default function App() {
             isPageViewMode ? renderPageView() : renderScrollView()
           ) : (
             <ScrollView contentContainerStyle={styles.textContainer}>
-              <Text>여기에 재난 가이드 텍스트 내용이 표시됩니다.</Text>
+              <Text>
+                <Markdown>{textContent}</Markdown> {/* 마크다운 렌더링 */}
+              </Text>
             </ScrollView>
           )}
 
