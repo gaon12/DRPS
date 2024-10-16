@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import {createStackNavigator} from '@react-navigation/stack';
 import {NavigationContainer} from '@react-navigation/native';
+import CheckList from './CheckList';
 import Tabs from './tabs';
 import VersionInfo from './tabs/Settings/pages/VersionInfo';
 import LabsScreen from './tabs/Settings/pages/Labs/index';
@@ -16,7 +17,12 @@ import LifeDisasters from './tabs/SafetyGuide/pages/LifeDisasters';
 import ApiScreen from './tabs/SafetyGuide/pages/ApiScreen';
 import EmergencyDisasters from './tabs/SafetyGuide/pages/EmergencyDisasters';
 import SurvivalSkills from './tabs/SafetyGuide/pages/SurvivalSkills';
-import CheckList from './tabs/SafetyGuide/CheckList';
+import CList from './tabs/SafetyGuide/CList';
+import ImportantObjects from './tabs/SafetyGuide/CList/ImportantObjects';
+import CommonDisasters from './tabs/SafetyGuide/CList/CommonDisasters';
+import MyLists from './tabs/SafetyGuide/CList/MyLists';
+import EmergencyBags from './tabs/SafetyGuide/CList/EmergencyBags';
+import LocalDisasters from './tabs/SafetyGuide/CList/LocalDisasters';
 import EvacMain from './tabs/SafetyGuide/EvacSimulator/EvacMain'
 import EvacwithAddress from './tabs/SafetyGuide/EvacSimulator/EvacwithAddress'
 import EvacwithMap from './tabs/SafetyGuide/EvacSimulator/EvacwithMap'
@@ -124,8 +130,15 @@ const App = () => {
                         options={{title: 'News Detail'}}
                     />
                     {/* 체크리스트와 피난시뮬레이션 */}
-                    <Stack.Screen name="CheckList" component={CheckList}/>
+                    <Stack.Screen name="CList" component={CList}/>
                     <Stack.Screen name="EvacMain" component={EvacMain}/>
+
+                    {/* 체크리스트 관련 */}
+                    <Stack.Screen name="ImportantObjects" component={ImportantObjects}/>
+                    <Stack.Screen name="CommonDisasters" component={CommonDisasters}/>
+                    <Stack.Screen name="MyLists" component={MyLists}/>
+                    <Stack.Screen name="EmergencyBags" component={EmergencyBags}/>
+                    <Stack.Screen name="LocalDisasters" component={LocalDisasters}/>
 
                     {/* 피난시뮬레이션 관련 */}
                     <Stack.Screen name="EvacwithAddress" component={EvacwithAddress}/>

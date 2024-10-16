@@ -279,14 +279,17 @@ const styles = StyleSheet.create({
   thumbnailContentContainer: {
     alignItems: 'center',
     paddingVertical: 10,
+    
   },
   thumbnailButton: {
     marginBottom: 10,
+    
   },
   thumbnailImage: {
     width: width - 40,
     height: (width - 40) * 1.414,
     borderRadius: 8,
+    
   },
   textContainer: {
     flexGrow: 1,
