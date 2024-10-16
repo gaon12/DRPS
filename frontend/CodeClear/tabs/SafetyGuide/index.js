@@ -80,7 +80,7 @@ const ActionGuidelines = ({ navigation }) => {
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
                   style={styles.button}
-                  onPress={() => navigation.navigate('CheckList')} // '재난 체크 리스트' 페이지로 이동
+                  onPress={() => navigation.navigate('CList')} // '재난 체크 리스트' 페이지로 이동
                 >
                   <FontAwesome5 name="suitcase-rolling" size={40} color="white" />
                   <Text style={styles.buttonText}>재난 체크 리스트</Text>

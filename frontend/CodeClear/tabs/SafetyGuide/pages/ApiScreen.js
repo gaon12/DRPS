@@ -3,13 +3,13 @@ import { View, Image, ScrollView, Dimensions, StyleSheet, TouchableOpacity, Text
 import { Provider as PaperProvider, Appbar, Modal, Portal, Button, ProgressBar } from 'react-native-paper';
 import axios from 'axios';
 import { PinchGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
-import Markdown from 'react-native-markdown-display'; // 마크다운 렌더링 라이브러리
+import Markdown from 'react-native-markdown-display';
 
 const { width, height } = Dimensions.get('window');
 
 export default function App({ navigation }) {
-  const [pages, setPages] = useState([]); // 이미지 데이터를 저장할 상태
-  const [textContent, setTextContent] = useState(''); // 텍스트 데이터를 저장할 상태
+  const [pages, setPages] = useState([]);
+  const [textContent, setTextContent] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,7 +19,7 @@ export default function App({ navigation }) {
   const [fileName, setFileName] = useState('');
   const scrollViewRef = useRef(null);
   const pageViewRef = useRef(null);
-  const [activeTab, setActiveTab] = useState('image'); // 탭 관리
+  const [activeTab, setActiveTab] = useState('image');
 
   useEffect(() => {
     fetchPages();
@@ -30,19 +30,17 @@ export default function App({ navigation }) {
       const response = await axios.get('https://apis.uiharu.dev/drps/NationalActionTips/api.php?category=naturaldisaster&id=01011&returnfile=webp');
       const { data } = response.data;
       
-      // 이미지 데이터를 처리
       const pageData = Object.entries(data)
         .filter(([key]) => key.startsWith('webp'))
         .sort(([a], [b]) => parseInt(a.slice(4)) - parseInt(b.slice(4)))
         .map(([_, value]) => `data:image/webp;base64,${value}`);
       
-      // 텍스트 데이터를 처리 (마크다운 형태로 가져옴)
       const decodedText = decodeURIComponent(escape(atob(data.text)));
       
       setPages(pageData);
       setTotalPages(pageData.length);
       setFileName('Natural Disaster Guide');
-      setTextContent(decodedText); // 텍스트 데이터를 저장
+      setTextContent(decodedText);
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching pages:', error);
@@ -131,13 +129,13 @@ export default function App({ navigation }) {
       contentContainerStyle={styles.thumbnailContentContainer}
     >
       {pages.map((page, index) => (
-        <Button key={index} onPress={() => handlePagePress(index)} style={styles.thumbnailButton}>
+        <TouchableOpacity key={index} onPress={() => handlePagePress(index)} style={styles.thumbnailButton}>
           <Image
             source={{ uri: page }}
             style={styles.thumbnailImage}
             resizeMode="contain"
           />
-        </Button>
+        </TouchableOpacity>
       ))}
     </ScrollView>
   );
@@ -169,13 +167,12 @@ export default function App({ navigation }) {
         <View style={styles.container}>
           <Appbar.Header>
             {isPageViewMode && (
-              <Appbar.BackAction onPress={() => navigation.goBack()} /> // 뒤로가기 버튼 처리
+              <Appbar.BackAction onPress={handleBackPress} />
             )}
             <Appbar.Content title={fileName} subtitle={`${currentPage}/${totalPages}`} />
             <Appbar.Action icon="menu" onPress={() => setModalVisible(true)} />
           </Appbar.Header>
           
-          {/* 탭 UI 추가 */}
           <View style={styles.tabContainer}>
             <TouchableOpacity
               style={[styles.tabButton, activeTab === 'image' && styles.activeTabButton]}
@@ -183,7 +180,6 @@ export default function App({ navigation }) {
             >
               <Text style={[styles.tabButtonText, activeTab === 'image' && styles.activeTabButtonText]}>이미지</Text>
             </TouchableOpacity>
-
             <TouchableOpacity
               style={[styles.tabButton, activeTab === 'text' && styles.activeTabButton]}
               onPress={() => setActiveTab('text')}
@@ -192,17 +188,13 @@ export default function App({ navigation }) {
             </TouchableOpacity>
           </View>
           
-          {/* 탭에 따라 다른 내용 표시 */}
           {activeTab === 'image' ? (
             isPageViewMode ? renderPageView() : renderScrollView()
           ) : (
             <ScrollView contentContainerStyle={styles.textContainer}>
-              <Text>
-                <Markdown>{textContent}</Markdown> {/* 마크다운 렌더링 */}
-              </Text>
+              <Markdown style={markdownStyles}>{textContent}</Markdown>
             </ScrollView>
           )}
-
           <Portal>
             <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)} contentContainerStyle={styles.modalContent}>
               <Text style={styles.modalTitle}>Go to Page</Text>
@@ -262,16 +254,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pageContainer: {
-    flex: 1,
+    width,
+    height,
   },
   pageContentContainer: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   pageImage: {
-    width,
-    height,
+    width: '100%',
+    height: '100%',
   },
   thumbnailScrollContainer: {
     flex: 1,
@@ -279,22 +271,17 @@ const styles = StyleSheet.create({
   thumbnailContentContainer: {
     alignItems: 'center',
     paddingVertical: 10,
-    
   },
   thumbnailButton: {
     marginBottom: 10,
-    
   },
   thumbnailImage: {
     width: width - 40,
     height: (width - 40) * 1.414,
     borderRadius: 8,
-    
   },
   textContainer: {
     flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
     padding: 20,
   },
   loadingContainer: {
@@ -333,3 +320,42 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 });
+
+const markdownStyles = StyleSheet.create({
+  body: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#333',
+  },
+  heading1: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    marginTop: 20,
+  },
+  heading2: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    marginTop: 16,
+  },
+  paragraph: {
+    marginBottom: 10,
+  },
+  list: {
+    marginLeft: 20,
+  },
+  listItem: {
+    marginBottom: 5,
+  },
+  strong: {
+    fontWeight: 'bold',
+  },
+  em: {
+    fontStyle: 'italic',
+  },
+});
+
+// 글씨폰트, 간격 주기
+// 요약기능 추가 - API
+// UI개선
