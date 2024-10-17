@@ -1,9 +1,9 @@
 <?php
-require 'db_config.php'; // DB 연결 설정 포함
+require '../db/db_config.php'; // DB 연결 설정 포함
 
 // API 기본 URL 및 서비스 키 설정
 $apiUrl = 'https://apis.data.go.kr/1741000/EmergencyAssemblyArea_Earthquake5/getArea4List2';
-$serviceKey = ''; // 실제 서비스 키로 교체
+$serviceKey = 'apikey'; // 실제 서비스 키로 교체
 $pageNo = 1; // 페이지 번호 초기값
 $numOfRows = 1000; // 한 페이지당 불러올 행 수
 $type = 'json'; // 응답 형식
@@ -28,7 +28,7 @@ function fetchData($url) {
 // 반복문을 통해 API 데이터를 가져와 DB에 저장
 while (true) {
     // API 요청 URL 생성
-    $requestUrl = "$apiUrl?serviceKey=$serviceKey&pageNo=$pageNo&numOfRows=$numOfRows&type=$type";
+    $requestUrl = "$apiUrl?serviceKey=" . urlencode($serviceKey) . "&pageNo=$pageNo&numOfRows=$numOfRows&type=$type";
     
     // API 데이터 가져오기
     $data = fetchData($requestUrl);
@@ -51,11 +51,10 @@ while (true) {
         $maxCapacity = filter_var($row['vt_acmd_psbl_nmpr'], FILTER_VALIDATE_INT);
         $facilityArea = filter_var($row['fclty_ar'], FILTER_VALIDATE_FLOAT);
 
-        // 데이터베이스에 연결되어 있음을 확인하고 예외 처리
         try {
             // DB에 해당 관리 번호가 있는지 확인
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM EarthquakeShelters WHERE managementNumber = :managementNumber");
-            $stmt->execute(['managementNumber' => $managementNumber]);
+            $stmt->execute([':managementNumber' => $managementNumber]);
             $exists = $stmt->fetchColumn();
 
             if ($exists) {
@@ -74,16 +73,16 @@ while (true) {
                     WHERE managementNumber = :managementNumber
                 ");
                 $updateStmt->execute([
-                    'facilityName' => $facilityName,
-                    'facilityType' => $facilityType,
-                    'address' => $address,
-                    'latitude' => $latitude,
-                    'longitude' => $longitude,
-                    'managerName' => $managerName,
-                    'managerPhone' => $managerPhone,
-                    'maxCapacity' => $maxCapacity,
-                    'facilityArea' => $facilityArea,
-                    'managementNumber' => $managementNumber
+                    ':facilityName' => $facilityName,
+                    ':facilityType' => $facilityType,
+                    ':address' => $address,
+                    ':latitude' => $latitude,
+                    ':longitude' => $longitude,
+                    ':managerName' => $managerName,
+                    ':managerPhone' => $managerPhone,
+                    ':maxCapacity' => $maxCapacity,
+                    ':facilityArea' => $facilityArea,
+                    ':managementNumber' => $managementNumber
                 ]);
             } else {
                 // 삽입 쿼리
@@ -99,16 +98,16 @@ while (true) {
                     )
                 ");
                 $insertStmt->execute([
-                    'managementNumber' => $managementNumber,
-                    'facilityName' => $facilityName,
-                    'facilityType' => $facilityType,
-                    'address' => $address,
-                    'latitude' => $latitude,
-                    'longitude' => $longitude,
-                    'managerName' => $managerName,
-                    'managerPhone' => $managerPhone,
-                    'maxCapacity' => $maxCapacity,
-                    'facilityArea' => $facilityArea
+                    ':managementNumber' => $managementNumber,
+                    ':facilityName' => $facilityName,
+                    ':facilityType' => $facilityType,
+                    ':address' => $address,
+                    ':latitude' => $latitude,
+                    ':longitude' => $longitude,
+                    ':managerName' => $managerName,
+                    ':managerPhone' => $managerPhone,
+                    ':maxCapacity' => $maxCapacity,
+                    ':facilityArea' => $facilityArea
                 ]);
             }
         } catch (PDOException $e) {
@@ -122,4 +121,3 @@ while (true) {
 
 echo "데이터 저장 완료!";
 ?>
-

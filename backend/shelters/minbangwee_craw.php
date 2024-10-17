@@ -1,7 +1,7 @@
 <?php
 // 필요한 라이브러리 및 DB 설정 파일 불러오기
 require 'vendor/autoload.php'; // PhpSpreadsheet 설치 필요
-require 'db_config.php';
+require '../db/db_config.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -160,4 +160,3 @@ if ($rowCount == 0) {
     echo "$updateRecords 개의 기존 데이터를 업데이트했습니다.\n";
 }
 ?>
-

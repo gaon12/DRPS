@@ -6,11 +6,47 @@ require 'db_config.php';
 $baseUrl = "https://www.safekorea.go.kr/idsiSFK/sfk/cs/sua/web/DisasterSmsList.do";
 $pageUnit = 999999999; // 최대한 많은 데이터를 한 번에 가져오기
 
+// 카테고리 분류를 위한 API URL
+$categoryApiUrl = "https://apis.uiharu.dev/drps/disastermsg";
+
 // DB에서 가장 최근의 등록 날짜 가져오기
 function getLastRegisteredDate($pdo) {
     $stmt = $pdo->query("SELECT MAX(registered_at) AS last_date FROM disaster_messages");
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     return $row['last_date'] ? $row['last_date'] : null;
+}
+
+// 카테고리를 가져오는 함수
+function fetchCategory($messageContent) {
+    global $categoryApiUrl;
+
+    $ch = curl_init();
+
+    // POST 요청에 전달할 데이터 설정
+    $postData = json_encode(['text' => $messageContent]);
+
+    curl_setopt($ch, CURLOPT_URL, $categoryApiUrl);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json'
+    ]);
+
+    $response = curl_exec($ch);
+
+    if (curl_errno($ch)) {
+        echo "카테고리 API 오류: " . curl_error($ch) . "\n";
+        curl_close($ch);
+        return 'na'; // API 오류 시 'na'로 처리
+    }
+
+    curl_close($ch);
+
+    $data = json_decode($response, true);
+
+    // 카테고리 값이 있는지 확인
+    return isset($data['category']) ? $data['category'] : 'na';
 }
 
 // 재난문자 데이터를 DB에 저장하는 함수 (MD101_SN 기준 중복 방지)
@@ -21,7 +57,9 @@ function storeMessages($pdo, $messages) {
 
     foreach ($messages as $message) {
         $modified_at = $message['MODF_DT'] ?? date('Y-m-d H:i:s');
-        $disaster_type = $message['DSSTR_SE_NM'] ?? 'na';  // disaster_type 값이 없으면 'na'로 저장
+        
+        // message_content로 카테고리 API 호출하여 disaster_type 값 가져오기
+        $disaster_type = fetchCategory($message['MSG_CN']);
 
         $stmt->execute([
             ':message_content' => $message['MSG_CN'],
@@ -109,4 +147,3 @@ if ($lastRegisteredDate) {
 
 fetchAndStoreAllMessages($pdo, $startDate, $currentDate);
 ?>
-

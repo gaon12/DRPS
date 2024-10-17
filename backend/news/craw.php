@@ -26,11 +26,8 @@ if (!$apiKey) {
     die("API Key not found in .env file");
 }
 
-// db_config.php 파일에서 DB 정보 로드
-$dbConfig = require __DIR__ . '/db_config.php';
-
-// MySQL 데이터베이스 연결 설정
-$dsn = "mysql:host={$dbConfig['host']};dbname={$dbConfig['dbname']};charset={$dbConfig['charset']}";
+// db_config.php 불러오기
+require '../db/db_config.php';
 
 try {
     // PDO 객체 생성 및 연결
