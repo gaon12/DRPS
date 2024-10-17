@@ -38,6 +38,7 @@
     "react-native-maps": "^1.18.0",
     "react-native-markdown-display": "^7.0.2",
     "react-native-modal": "^13.0.1",
+    "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-pager-view": "6.3.0",
     "react-native-paper": "^5.12.5",
     "react-native-pdf": "^6.7.5",

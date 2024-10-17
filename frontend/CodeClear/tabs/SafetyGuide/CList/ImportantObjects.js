@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, ScrollView } from 'react-native';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { Calendar } from 'react-native-calendars';
 
 const ChecklistItem = ({ title }) => {
   const [checked, setChecked] = useState(false);
@@ -10,44 +10,99 @@ const ChecklistItem = ({ title }) => {
   const [isMemoSaved, setMemoSaved] = useState(false);  // 메모 저장 여부
   const [isCalendarVisible, setCalendarVisible] = useState(false);  // 캘린더 모달 상태
   const [dueDate, setDueDate] = useState(null);  // 기한 설정 상태
+  const [selectedDate, setSelectedDate] = useState(null);  // 선택한 날짜
   const [currentTitle, setCurrentTitle] = useState('');  // 현재 메모를 편집 중인 리스트 제목
+
+  const today = new Date().toISOString().split('T')[0];  // 오늘 날짜
+
+  // 날짜 차이를 계산하는 함수
+  const calculateDateDifference = (selectedDate) => {
+    const todayDate = new Date(today);
+    const selected = new Date(selectedDate);
+    const differenceInTime = selected.getTime() - todayDate.getTime();
+    return Math.ceil(differenceInTime / (1000 * 3600 * 24));  // 일 단위로 변환
+  };
 
   // 메모 저장 핸들러
   const handleMemoSave = () => {
     if (memoText.trim().length > 0) {
-      setMemoSaved(true);  // 메모가 작성되었음을 표시
+      setMemoSaved(true);
     } else {
-      setMemoSaved(false);  // 메모가 비어 있으면 다시 저장 해제
+      setMemoSaved(false);
     }
-    setMemoVisible(false);  // 메모 모달 닫기
+    setMemoVisible(false);
   };
 
   // 메모 열기 핸들러
   const openMemoModal = (title) => {
-    setCurrentTitle(title);  // 현재 편집 중인 리스트 제목 설정
-    setMemoVisible(true);  // 메모 모달 열기
+    setCurrentTitle(title);
+    setMemoVisible(true);
   };
 
   // 캘린더 핸들러
-  const handleConfirm = (date) => {
-    setDueDate(date.toLocaleDateString());  // 선택한 날짜 저장
-    setCalendarVisible(false);  // 캘린더 모달 닫기
+  const handleDayPress = (day) => {
+    setSelectedDate(day.dateString);  // 선택한 날짜 저장 (파란색 유지)
   };
 
   // 캘린더 초기화 핸들러
   const handleResetDate = () => {
-    setDueDate(null);  // 날짜 초기화
-    setCalendarVisible(false);  // 캘린더 모달 닫기
+    setDueDate(null);
+    setSelectedDate(null);
+    setCalendarVisible(false);
   };
+
+  // '확인' 버튼 클릭 시 설정된 날짜 적용
+  const handleConfirmDate = () => {
+    setDueDate(selectedDate);  // 선택한 날짜를 적용
+    setCalendarVisible(false);
+  };
+
+  // 날짜에 따른 색상 및 텍스트 설정
+  const getDateText = () => {
+    if (!dueDate) return '기한 미설정';
+
+    const daysDifference = calculateDateDifference(dueDate);
+
+    if (daysDifference === 0) {
+      return '기한 만료';  // 오늘 날짜와 같은 경우
+    }
+
+    return dueDate;  // 그 외는 날짜 출력
+  };
+
+  // 날짜에 따른 스타일 설정
+  const getDateStyle = () => {
+    if (!dueDate) return { backgroundColor: '#f0f0f0', textColor: 'gray', iconColor: 'gray' };
+
+    const daysDifference = calculateDateDifference(dueDate);
+
+    if (daysDifference === 0) {
+      // 기한 만료인 경우: 버튼 전체 배경을 빨간색으로, 텍스트는 흰색, 아이콘은 회색으로
+      return {
+        backgroundColor: 'red',    // 버튼 전체 배경을 빨간색으로
+        textColor: 'white',        // 텍스트는 흰색
+        iconColor: 'gray'          // 아이콘은 회색
+      };
+    }
+
+    // 30일 이하 빨간색 텍스트, 30일 초과 초록색 텍스트
+    return {
+      backgroundColor: '#f0f0f0',  // 기본 배경 색상
+      textColor: daysDifference <= 30 ? 'red' : 'green',  // 날짜에 따라 텍스트 색상 변경
+      iconColor: daysDifference <= 30 ? 'red' : 'green'   // 날짜에 따라 아이콘 색상 변경
+    };
+  };
+
+  const dateStyle = getDateStyle();  // 텍스트 및 아이콘 스타일을 가져오기
 
   return (
     <View style={styles.checklistItem}>
       <View style={styles.row}>
         <TouchableOpacity onPress={() => setChecked(!checked)}>
-          <FontAwesome 
-            name={checked ? 'check-square-o' : 'square-o'} 
-            size={24} 
-            color="black" 
+          <FontAwesome
+            name={checked ? 'check-square-o' : 'square-o'}
+            size={24}
+            color="black"
           />
         </TouchableOpacity>
         <Text style={styles.title}>{title}</Text>
@@ -56,35 +111,35 @@ const ChecklistItem = ({ title }) => {
         </TouchableOpacity>
       </View>
 
-		{/* 메모 버튼 */}
       <View style={styles.buttonRow}>
         <TouchableOpacity
           style={styles.memoButton}
           onPress={() => openMemoModal(title)}
         >
-          <MaterialIcons 
-            name="edit" 
-            size={20} 
+          <MaterialIcons
+            name="edit"
+            size={20}
             color={isMemoSaved ? 'blue' : 'gray'}  // 메모가 저장되면 파란색으로 변경
           />
-          <Text style={[styles.buttonText, isMemoSaved && { color: 'blue' }]}>메모 편집</Text>  
+          <Text style={[styles.buttonText, isMemoSaved && { color: 'blue' }]}>메모 편집</Text>
         </TouchableOpacity>
 
-        {/* 기한 설정 버튼 */}
-        <TouchableOpacity style={styles.deadlineButton} onPress={() => setCalendarVisible(true)}>
-          <Text style={[styles.buttonText, dueDate ? { color: 'red' } : { color: 'gray' }]}>
-            {dueDate ? dueDate : '기한 미설정'}
+        <TouchableOpacity
+          style={[styles.deadlineButton, { backgroundColor: dateStyle.backgroundColor }]}  // 버튼 자체의 배경색 변경
+          onPress={() => setCalendarVisible(true)}
+        >
+          <Text style={[styles.buttonText, { color: dateStyle.textColor }]}>
+            {getDateText()}
           </Text>
-          <MaterialIcons name="calendar-today" size={20} color={dueDate ? 'red' : 'gray'} />  
+          <MaterialIcons name="calendar-today" size={20} color={dateStyle.iconColor} />
         </TouchableOpacity>
       </View>
 
-      {/* 메모 모달 */}
       <Modal visible={isMemoVisible} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>
           <View style={styles.memoModal}>
             <Text style={styles.modalTitle}>메모 편집</Text>
-            <Text style={styles.currentListTitle}>{currentTitle}</Text>  
+            <Text style={styles.currentListTitle}>{currentTitle}</Text>
             <TextInput
               style={styles.memoInput}
               value={memoText}
@@ -103,18 +158,55 @@ const ChecklistItem = ({ title }) => {
         </View>
       </Modal>
 
-      {/* 캘린더 모달 */}
-      <DateTimePickerModal
-        isVisible={isCalendarVisible}
-        mode="date"
-        onConfirm={handleConfirm}  // 날짜 선택 후 호출
-        onCancel={() => setCalendarVisible(false)}  // 모달 닫기
-        customCancelButtonIOS={
-          <TouchableOpacity style={styles.resetButton} onPress={handleResetDate}>
-            <Text style={styles.resetText}>초기화</Text>
+      <Modal visible={isCalendarVisible} animationType="slide" transparent={true}>
+        <TouchableOpacity style={styles.modalContainer} activeOpacity={1} onPressOut={() => setCalendarVisible(false)}>
+          <TouchableOpacity activeOpacity={1} style={styles.largeCalendarModal}>
+            <Text style={styles.modalTitle}>기한 설정</Text>
+            <Calendar
+              onDayPress={handleDayPress}  // 날짜 선택 핸들러
+              markedDates={selectedDate ? { [selectedDate]: { selected: true, marked: true, selectedColor: 'blue' } } : {}}  // 선택한 날짜 파란색으로 유지
+              style={styles.fixedCalendarSize}  // 캘린더 크기 고정
+              theme={{
+                selectedDayBackgroundColor: 'blue',  // 선택된 날짜 배경 파란색
+                todayTextColor: 'blue',  // 오늘 날짜 텍스트 색상
+                arrowColor: 'blue',  // 화살표 색상 파란색
+                monthTextColor: 'black',  // 월 텍스트 색상 설정
+                textMonthFontSize: 20,  // 월 텍스트 크기 고정
+                textMonthFontWeight: 'bold',  // 월 텍스트 굵기 설정
+                textMonthFontFamily: 'Arial',  // 폰트 설정 (필요 시 다른 폰트 적용 가능)
+                'stylesheet.calendar.header': {
+                  header: {
+                    flexDirection: 'row',
+                    justifyContent: 'center',  // 월/년도를 가운데 정렬
+                    alignItems: 'center',  // 수직 가운데 정렬
+                    paddingHorizontal: 0,  // 양쪽 여백 제거
+                    paddingVertical: 10,  // 상하 여백 설정
+                    height: 50,  // 높이 고정
+                    width: '100%',  // 가로 크기 고정
+                  },
+                  monthText: {
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    width: 200,  // 가로 크기를 고정
+                    textAlign: 'center',  // 텍스트 가운데 정렬
+                  },
+                  arrow: {
+                    padding: 10,  // 화살표 크기 조정
+                  },
+                },
+              }}
+            />
+            <View style={styles.calendarActions}>
+              <TouchableOpacity onPress={handleResetDate}>
+                <Text style={styles.resetButton}>초기화</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleConfirmDate}>
+                <Text style={styles.confirmButton}>확인</Text>
+              </TouchableOpacity>
+            </View>
           </TouchableOpacity>
-        }  // 초기화 버튼 추가
-      />
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
@@ -240,7 +332,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     padding: 10,
     borderRadius: 10,
-    width: '48%',  // 전체의 48%씩 차지
+    width: '48%',
   },
   deadlineButton: {
     flexDirection: 'row',
@@ -248,64 +340,42 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     padding: 10,
     borderRadius: 10,
-    width: '48%',  // 전체의 48%씩 차지
-    justifyContent: 'space-between',  // 텍스트와 아이콘 간 간격 유지
+    width: '48%',
+    justifyContent: 'space-between',
   },
   buttonText: {
     marginLeft: 5,
     color: 'gray',
   },
-  // 모달 스타일
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  memoModal: {
+  largeCalendarModal: {
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
-    width: '80%',
+    width: '90%',
+    height: 'auto',
     alignItems: 'center',
   },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  currentListTitle: {
-    fontSize: 16,
-    color: 'gray',
-    marginBottom: 10,
-    alignSelf: 'flex-start',  // 좌측 정렬
-  },
-  memoInput: {
-    height: 100,
+  fixedCalendarSize: {
     width: '100%',
-    borderColor: '#ddd',
-    borderWidth: 1,
-    padding: 10,
-    marginBottom: 20,
-    borderRadius: 5,
+    height: 330,
+    backgroundColor: 'transparent',
   },
-  memoActions: {
+  calendarActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     width: '100%',
-  },
-  cancelButton: {
-    color: 'red',
-  },
-  saveButton: {
-    color: 'blue',
+    paddingHorizontal: 20,
+    marginTop: 10,
   },
   resetButton: {
-    marginTop: 10,
-    alignSelf: 'center',
-  },
-  resetText: {
     color: 'blue',
+    marginRight: 20,
   },
 });
 
