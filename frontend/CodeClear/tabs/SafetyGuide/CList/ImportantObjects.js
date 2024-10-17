@@ -235,27 +235,27 @@ const AccordionItem = ({ sectionTitle, checklistItems }) => {
 const ImportantObjects = () => {
   const sections = [
     {
-      title: '가방에 넣어두면 편리',
-      items: ['들고 이동하기 편한 가방', '항상 여행에 가져가는 물건'],
+      title: '비상용 백',
+      items: ['생수', '간편식','손전등','상비약','화장지'],
     },
     {
-      title: '귀가 곤란을 상정한 대비',
-      items: ['비상약', '응급 처치 도구'],
+      title: '귀중한 물건',
+      items: ['귀중품', '중요 서류'],
     },
     {
       title: '안전성이 높은 외출 스타일',
       items: ['야광 조끼', '안전화'],
     },
     {
-      title: '임신 중에 필요한 아이템',
+      title: '생활용품',
       items: ['임산부 안전벨트', '필수 영양제'],
     },
     {
-      title: '아기와의 외출',
+      title: '구급상자',
       items: ['아기용품 가방', '기저귀', '젖병'],
     },
     {
-      title: '6',
+      title: '비상식품',
       items: ['장난감', '간식'],
     },
   ];
@@ -380,3 +380,5 @@ const styles = StyleSheet.create({
 });
 
 export default ImportantObjects;
+
+// 현재날짜와 같으면 기한만료 부분 현재날짜 인식이 이상한듯

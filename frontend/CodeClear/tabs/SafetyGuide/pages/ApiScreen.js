@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Image, ScrollView, Dimensions, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, Image, ScrollView, Dimensions, StyleSheet, TouchableOpacity, Text, Share } from 'react-native';
 import { Provider as PaperProvider, Modal, Portal, Button, ProgressBar } from 'react-native-paper';
 import axios from 'axios';
 import { PinchGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Markdown from 'react-native-markdown-display';
+import * as Speech from 'expo-speech';
 
 const { width, height } = Dimensions.get('window');
 
@@ -14,13 +15,14 @@ export default function App({ navigation }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPageViewMode, setIsPageViewMode] = useState(false);  // 페이지 뷰 모드
+  const [isPageViewMode, setIsPageViewMode] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [scale, setScale] = useState(1);
   const scrollViewRef = useRef(null);
   const pageViewRef = useRef(null);
   const [activeTab, setActiveTab] = useState('image');
-  const [isDarkMode, setIsDarkMode] = useState(false); // 다크 모드 변수
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
     fetchPages();
@@ -45,6 +47,38 @@ export default function App({ navigation }) {
     } catch (error) {
       console.error('Error fetching pages:', error);
       setIsLoading(false);
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      const result = await Share.share({
+        message: textContent,
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log('shared with activity type of', result.activityType);
+        } else {
+          console.log('shared');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log('dismissed');
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleTTS = async () => {
+    if (isSpeaking) {
+      await Speech.stop();
+      setIsSpeaking(false);
+    } else {
+      setIsSpeaking(true);
+      Speech.speak(textContent, {
+        onDone: () => setIsSpeaking(false),
+        onError: () => setIsSpeaking(false),
+      });
     }
   };
 
@@ -176,15 +210,6 @@ export default function App({ navigation }) {
     <PaperProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <View style={styles.container}>
-          {/* Appbar.Header 주석 처리 */}
-          {/* <Appbar.Header>
-            {isPageViewMode && (
-              <Appbar.BackAction onPress={handleBackPress} />
-            )}
-            <Appbar.Content title={`Page ${currentPage}`} subtitle={`${currentPage}/${totalPages}`} />
-            <Appbar.Action icon="menu" onPress={() => setModalVisible(true)} />
-          </Appbar.Header> */}
-
           <View style={styles.tabContainer}>
             <View style={styles.tabs}>
               <TouchableOpacity
@@ -201,15 +226,22 @@ export default function App({ navigation }) {
               </TouchableOpacity>
             </View>
 
-            {/* 아이콘: 이미지 탭에서는 페이지 이동 아이콘, 텍스트 탭에서는 Summarize 아이콘 */}
             {activeTab === 'image' ? (
               <TouchableOpacity style={styles.iconContainer} onPress={() => setModalVisible(true)}>
                 <MaterialIcons name="menu" size={24} color={isDarkMode ? "#fff" : "black"} />
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity style={styles.iconContainer} onPress={() => console.log('Summarize 기능 실행')}>
-                <MaterialIcons name="summarize" size={24} color={isDarkMode ? "#fff" : "black"} />
-              </TouchableOpacity>
+              <View style={styles.iconContainer}>
+                <TouchableOpacity style={styles.iconButton} onPress={handleShare}>
+                  <MaterialIcons name="share" size={24} color={isDarkMode ? "#fff" : "black"} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.iconButton} onPress={handleTTS}>
+                  <MaterialIcons name={isSpeaking ? "volume-off" : "volume-up"} size={24} color={isDarkMode ? "#fff" : "black"} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.iconButton} onPress={() => console.log('Summarize 기능 실행')}>
+                  <MaterialIcons name="summarize" size={24} color={isDarkMode ? "#fff" : "black"} />
+                </TouchableOpacity>
+              </View>
             )}
           </View>
 
@@ -217,7 +249,6 @@ export default function App({ navigation }) {
             isPageViewMode ? renderPageView() : renderScrollView()
           ) : (
             <View style={{ flex: 1 }}>
-              {/* Summarize 아이콘을 ScrollView 외부에 고정 */}
               <ScrollView contentContainerStyle={styles.textContainer}>
                 <Markdown style={markdownStyles}>{textContent}</Markdown>
               </ScrollView>
@@ -285,7 +316,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   iconContainer: {
-    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
+    marginLeft: 15,
   },
   pageViewScrollContainer: {
     flex: 1,
