@@ -232,7 +232,7 @@ const AccordionItem = ({ sectionTitle, checklistItems }) => {
   );
 };
 
-const AccordionChecklist = () => {
+const ImportantObjects = () => {
   const sections = [
     {
       title: '가방에 넣어두면 편리',
@@ -379,4 +379,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AccordionChecklist;
+export default ImportantObjects;
