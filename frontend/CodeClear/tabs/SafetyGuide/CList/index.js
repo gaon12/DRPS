@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native'; // 네비게이션 훅 추가
 
 const CList = () => {
@@ -12,12 +11,11 @@ const CList = () => {
     { id: 2, icon: 'door', text: '공통 재해', screen: 'CommonDisasters' },
     { id: 3, icon: 'clipboard-check', text: '나만의 목록', screen: 'MyLists' },
     { id: 4, icon: 'bag-checked', text: '비상용 생존가방', screen: 'EmergencyBags' },
-    { id: 5, icon: 'weather-lightning-rainy', text: '지역 재해 대비', screen: 'LocalDisasters' },
+    { id: 5, icon: 'weather-lightning-rainy', text: '지역별 재해 대비', screen: 'LocalDisasters' },
   ];
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
       <View style={styles.header}>
         <Text style={styles.headerText}>체크 목록</Text>
       </View>
