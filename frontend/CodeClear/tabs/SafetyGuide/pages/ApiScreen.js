@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Image, ScrollView, Dimensions, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import { Provider as PaperProvider, Appbar, Modal, Portal, Button, ProgressBar } from 'react-native-paper';
+import { Provider as PaperProvider, Modal, Portal, Button, ProgressBar } from 'react-native-paper';
 import axios from 'axios';
 import { PinchGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Markdown from 'react-native-markdown-display';
 
 const { width, height } = Dimensions.get('window');
@@ -13,13 +14,13 @@ export default function App({ navigation }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPageViewMode, setIsPageViewMode] = useState(false);
+  const [isPageViewMode, setIsPageViewMode] = useState(false);  // 페이지 뷰 모드
   const [modalVisible, setModalVisible] = useState(false);
   const [scale, setScale] = useState(1);
-  const [fileName, setFileName] = useState('');
   const scrollViewRef = useRef(null);
   const pageViewRef = useRef(null);
   const [activeTab, setActiveTab] = useState('image');
+  const [isDarkMode, setIsDarkMode] = useState(false); // 다크 모드 변수
 
   useEffect(() => {
     fetchPages();
@@ -39,7 +40,6 @@ export default function App({ navigation }) {
       
       setPages(pageData);
       setTotalPages(pageData.length);
-      setFileName('Natural Disaster Guide');
       setTextContent(decodedText);
       setIsLoading(false);
     } catch (error) {
@@ -48,14 +48,26 @@ export default function App({ navigation }) {
     }
   };
 
+  // 썸네일 뷰에서 페이지 뷰로 전환
   const handlePagePress = (index) => {
     setCurrentPage(index + 1);
     setIsPageViewMode(true);
+
     setTimeout(() => {
       if (pageViewRef.current) {
         pageViewRef.current.scrollTo({ x: index * width, animated: false });
       }
     }, 0);
+  };
+
+  // 슬라이드 이미지 뷰에서 썸네일 뷰로 복귀
+  const handleBackToThumbnails = () => {
+    setIsPageViewMode(false);
+    setTimeout(() => {
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: (currentPage - 1) * (((width - 40) * 1.414) + 10), animated: true });
+      }
+    }, 100);
   };
 
   const handlePinchGesture = (event) => {
@@ -78,47 +90,46 @@ export default function App({ navigation }) {
     setModalVisible(false);
   };
 
-  const handleBackPress = () => {
-    setIsPageViewMode(false);
-    setTimeout(() => {
-      if (scrollViewRef.current) {
-        scrollViewRef.current.scrollTo({ y: (currentPage - 1) * (((width - 40) * 1.414) + 10), animated: true });
-      }
-    }, 100);
-  };
-
   const renderPageView = () => (
-    <ScrollView
-      ref={pageViewRef}
-      horizontal
-      pagingEnabled
-      showsHorizontalScrollIndicator={false}
-      onScroll={handleScroll}
-      scrollEventThrottle={16}
-      style={styles.pageViewScrollContainer}
-    >
-      {pages.map((page, index) => (
-        <PinchGestureHandler
-          key={index}
-          onGestureEvent={handlePinchGesture}
-          onHandlerStateChange={handlePinchGesture}
-        >
-          <ScrollView 
-            style={styles.pageContainer}
-            contentContainerStyle={styles.pageContentContainer}
-            maximumZoomScale={3}
-            minimumZoomScale={1}
-            showsVerticalScrollIndicator={false}
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        ref={pageViewRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        style={styles.pageViewScrollContainer}
+      >
+        {pages.map((page, index) => (
+          <PinchGestureHandler
+            key={index}
+            onGestureEvent={handlePinchGesture}
+            onHandlerStateChange={handlePinchGesture}
           >
-            <Image
-              source={{ uri: page }}
-              style={[styles.pageImage, { transform: [{ scale }] }]}
-              resizeMode="contain"
-            />
-          </ScrollView>
-        </PinchGestureHandler>
-      ))}
-    </ScrollView>
+            <ScrollView 
+              style={styles.pageContainer}
+              contentContainerStyle={styles.pageContentContainer}
+              maximumZoomScale={3}
+              minimumZoomScale={1}
+              showsVerticalScrollIndicator={false}
+            >
+              <Image
+                source={{ uri: page }}
+                style={[styles.pageImage, { transform: [{ scale }] }]}
+                resizeMode="contain"
+              />
+            </ScrollView>
+          </PinchGestureHandler>
+        ))}
+      </ScrollView>
+
+      {/* 하단에 뒤로가기 버튼 UI 개선 */}
+      <TouchableOpacity style={styles.backButton} onPress={handleBackToThumbnails}>
+        <MaterialIcons name="arrow-back" size={16} color="white" />
+        <Text style={styles.backButtonText}>뒤로 가기</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   const renderScrollView = () => (
@@ -165,36 +176,54 @@ export default function App({ navigation }) {
     <PaperProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <View style={styles.container}>
-          <Appbar.Header>
+          {/* Appbar.Header 주석 처리 */}
+          {/* <Appbar.Header>
             {isPageViewMode && (
               <Appbar.BackAction onPress={handleBackPress} />
             )}
-            <Appbar.Content title={fileName} subtitle={`${currentPage}/${totalPages}`} />
+            <Appbar.Content title={`Page ${currentPage}`} subtitle={`${currentPage}/${totalPages}`} />
             <Appbar.Action icon="menu" onPress={() => setModalVisible(true)} />
-          </Appbar.Header>
-          
+          </Appbar.Header> */}
+
           <View style={styles.tabContainer}>
-            <TouchableOpacity
-              style={[styles.tabButton, activeTab === 'image' && styles.activeTabButton]}
-              onPress={() => setActiveTab('image')}
-            >
-              <Text style={[styles.tabButtonText, activeTab === 'image' && styles.activeTabButtonText]}>이미지</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tabButton, activeTab === 'text' && styles.activeTabButton]}
-              onPress={() => setActiveTab('text')}
-            >
-              <Text style={[styles.tabButtonText, activeTab === 'text' && styles.activeTabButtonText]}>텍스트</Text>
-            </TouchableOpacity>
+            <View style={styles.tabs}>
+              <TouchableOpacity
+                style={[styles.tabButton, activeTab === 'image' && styles.activeTabButton]}
+                onPress={() => setActiveTab('image')}
+              >
+                <Text style={[styles.tabButtonText, activeTab === 'image' && styles.activeTabButtonText]}>이미지</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tabButton, activeTab === 'text' && styles.activeTabButton]}
+                onPress={() => setActiveTab('text')}
+              >
+                <Text style={[styles.tabButtonText, activeTab === 'text' && styles.activeTabButtonText]}>텍스트</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* 아이콘: 이미지 탭에서는 페이지 이동 아이콘, 텍스트 탭에서는 Summarize 아이콘 */}
+            {activeTab === 'image' ? (
+              <TouchableOpacity style={styles.iconContainer} onPress={() => setModalVisible(true)}>
+                <MaterialIcons name="menu" size={24} color={isDarkMode ? "#fff" : "black"} />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.iconContainer} onPress={() => console.log('Summarize 기능 실행')}>
+                <MaterialIcons name="summarize" size={24} color={isDarkMode ? "#fff" : "black"} />
+              </TouchableOpacity>
+            )}
           </View>
-          
+
           {activeTab === 'image' ? (
             isPageViewMode ? renderPageView() : renderScrollView()
           ) : (
-            <ScrollView contentContainerStyle={styles.textContainer}>
-              <Markdown style={markdownStyles}>{textContent}</Markdown>
-            </ScrollView>
+            <View style={{ flex: 1 }}>
+              {/* Summarize 아이콘을 ScrollView 외부에 고정 */}
+              <ScrollView contentContainerStyle={styles.textContainer}>
+                <Markdown style={markdownStyles}>{textContent}</Markdown>
+              </ScrollView>
+            </View>
           )}
+
           <Portal>
             <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)} contentContainerStyle={styles.modalContent}>
               <Text style={styles.modalTitle}>Go to Page</Text>
@@ -228,14 +257,19 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between', // 탭과 아이콘 간 간격 유지
     backgroundColor: '#f0f0f0',
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+  },
+  tabs: {
+    flexDirection: 'row',
   },
   tabButton: {
-    paddingVertical: 15,
-    paddingHorizontal: 30,
+    paddingVertical: 10,
+    paddingHorizontal: 20,  // 탭 간 간격 조절
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
@@ -250,20 +284,23 @@ const styles = StyleSheet.create({
     color: '#007BFF',
     fontWeight: 'bold',
   },
+  iconContainer: {
+    paddingVertical: 10,
+  },
   pageViewScrollContainer: {
     flex: 1,
   },
   pageContainer: {
-    width,
-    height,
+    flex: 1,
   },
   pageContentContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   pageImage: {
-    width: '100%',
-    height: '100%',
+    width,
+    height,
   },
   thumbnailScrollContainer: {
     flex: 1,
@@ -276,13 +313,34 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   thumbnailImage: {
-    width: width - 40,
-    height: (width - 40) * 1.414,
+    width: (width - 40) * 0.8, // 80% 크기로 줄임
+    height: ((width - 40) * 1.414) * 0.8, // 높이도 비율에 맞춰 조정
     borderRadius: 8,
-  },
+  },  
   textContainer: {
     flexGrow: 1,
-    padding: 20,
+    padding: 10,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#007BFF',
+    paddingVertical: 5,  // 패딩을 줄여 버튼 크기 조정
+    paddingHorizontal: 14,
+    borderRadius: 25,
+    marginVertical: 10,  // 버튼 위아래 여백을 줄여 공간 최소화
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5, // Android 용 그림자
+  },
+  backButtonText: {
+    color: 'white',
+    fontSize: 14,  // 텍스트 크기를 줄여서 버튼이 더 작게 보이도록 조정
+    marginLeft: 8,
   },
   loadingContainer: {
     flex: 1,
@@ -355,7 +413,3 @@ const markdownStyles = StyleSheet.create({
     fontStyle: 'italic',
   },
 });
-
-// 글씨폰트, 간격 주기
-// 요약기능 추가 - API
-// UI개선
