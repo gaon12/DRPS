@@ -32,8 +32,8 @@ function validate_numeric($value, $default = null, $min = null, $max = null) {
 try {
     // 파라미터 처리
     $yna_no = isset($_GET['yna_no']) ? $_GET['yna_no'] : null;
-    $title = isset($_GET['title']) ? $_GET['title'] : null;
-    $text = isset($_GET['text']) ? $_GET['text'] : null;
+    $title = isset($_GET['title']) && trim($_GET['title']) !== '' ? trim($_GET['title']) : null;
+    $text = isset($_GET['text']) && trim($_GET['text']) !== '' ? trim($_GET['text']) : null;
     $pageNo = validate_numeric($_GET['pageNo'] ?? null, 1, 1);
     $numOfRows = validate_numeric($_GET['numOfRows'] ?? null, 5, 1, 10);
 
