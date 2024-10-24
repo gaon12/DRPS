@@ -56,8 +56,8 @@ if ($region_name) {
 }
 
 if ($text) {
-    $query .= " AND message_content LIKE :text_sub"; // message_content에서 검색
-    $subParams[':text_sub'] = '%' . $text . '%'; // 부분 일치 검색
+    $query .= " AND REPLACE(REPLACE(message_content, CHAR(13), ''), CHAR(10), '') LIKE :text_sub";
+    $subParams[':text_sub'] = '%' . $text . '%';
 }
 
 $query .= "
