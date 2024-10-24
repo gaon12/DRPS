@@ -4,7 +4,8 @@
     "slug": "CodeClear",
     "version": "1.0.0",
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-localization"
     ],
     "splash": {
       "image": "./img/splash/splash.png",

@@ -71,14 +71,31 @@ const WeatherScreen = () => {
 
 	const fetchCityName = async (latitude, longitude) => {
 		try {
-			const response = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
-			const address = response.data.address;
-			const combinedLocation = `${address.city || ''} ${address.borough || ''} ${address.residential || ''}`.trim();
-			setCity(combinedLocation || 'Unknown Location');
+		  const response = await axios.get(
+			`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`,
+			{
+			  headers: {
+				'User-Agent': 'WeatherApp/1.0 (weather@app.com)',
+			  },
+			}
+		  );
+	  
+		  const address = response.data.address;
+		  const combinedLocation = [
+			address.city,
+			address.borough,
+			address.quarter,
+		  ]
+			.filter(Boolean) // 값이 있는 것만 남기기
+			.join(' '); // 공백으로 합치기
+	  
+		  setCity(combinedLocation || 'Unknown Location');
 		} catch (error) {
-			console.error('Error fetching city name:', error);
+		  console.error('Error fetching city name:', error);
+		  Alert.alert('Error', 'Failed to fetch city name. Please try again later.');
 		}
-	};
+	  };
+	  
 
 	const getAirQualityStatus = (parameter, value) => {
 		if (value === null || value === undefined || isNaN(value)) {
@@ -117,6 +134,7 @@ const WeatherScreen = () => {
 			let finalHourlyForecast = [...todaysForecast];
 			if (todaysForecast.length < 12) {
 				const nextDayWeather = await axios.get(`https://api.brightsky.dev/weather?lat=${latitude}&lon=${longitude}&date=${new Date(Date.now() + 86400000).toISOString().split('T')[0]}`);
+				console.log(nextDayWeather)
 				const nextDayForecast = nextDayWeather.data.weather.slice(0, 12 - todaysForecast.length);
 				finalHourlyForecast = [...todaysForecast, ...nextDayForecast];
 			}
@@ -131,18 +149,17 @@ const WeatherScreen = () => {
 
 	const fetchAirQuality = async (latitude, longitude) => {
 		try {
-		   const response = await axios.get(`https://apis.uiharu.dev/drps/air/api.php?latitude=${latitude}&longitude=${longitude}`);
-		   console.log('Air Quality API Response:', response); // API 응답을 로그로 출력
-	 
-		   if (response.data.StatusCode === 200) {
-			  setAirQuality(response.data.data); // 새 JSON 형식에 맞게 데이터를 설정합니다.
-		   } else {
-			  console.warn('Air quality data not found.');
-		   }
+			const response = await axios.get(`https://apis.uiharu.dev/drps/air/api.php?latitude=${latitude}&longitude=${longitude}`);
+			
+			if (response.data.StatusCode === 200) {
+				setAirQuality(response.data.data); // 새 JSON 형식에 맞게 데이터를 설정합니다.
+			} else {
+				console.warn('Air quality data not found.');
+			}
 		} catch (error) {
-		   console.error('Error fetching air quality:', error);
+			console.error('Error fetching air quality:', error);
 		}
-	 };
+	};
 
 	const calculateSunTimes = (lat, lon) => {
 		const date = new Date();
@@ -174,22 +191,26 @@ const WeatherScreen = () => {
 	};
 
 	const getWeatherIcon = (icon) => {
-		const iconMap = {
-			'clear-day': 'sun',
-			'clear-night': 'moon',
-			'partly-cloudy-day': 'cloud',
-			'partly-cloudy-night': 'cloud',
-			'cloudy': 'cloud',
-			'fog': 'cloud-drizzle',
-			'wind': 'wind',
-			'rain': 'cloud-rain',
-			'sleet': 'cloud-drizzle',
-			'snow': 'cloud-drizzle',
-			'hail': 'cloud',
-			'thunderstorm': 'cloud-lightning',
-		};
-		return <Feather name={iconMap[icon] || 'cloud'} size={40} color="gray" />;
-	};
+    const iconMap = {
+        'clear-day': { name: 'sun', color: '#FE9A2E' }, // 금색(맑은 날)
+        'clear-night': { name: 'moon', color: '#FFD700' }, // 회색(맑은 밤)
+        'partly-cloudy-day': { name: 'cloud', color: '#87CEEB' }, // 하늘색
+        'partly-cloudy-night': { name: 'cloud', color: '#708090' }, // 슬레이트 회색
+        'cloudy': { name: 'cloud', color: '#B0C4DE' }, // 밝은 회색
+        'fog': { name: 'cloud-drizzle', color: '#778899' }, // 어두운 회색
+        'wind': { name: 'wind', color: '#4682B4' }, // 강한 파랑
+        'rain': { name: 'cloud-rain', color: '#1E90FF' }, // 다저블루
+        'sleet': { name: 'cloud-drizzle', color: '#B0E0E6' }, // 밝은 하늘색
+        'snow': { name: 'cloud-drizzle', color: '#ADD8E6' }, // 연한 하늘색
+        'hail': { name: 'cloud', color: '#D3D3D3' }, // 연한 회색
+        'thunderstorm': { name: 'cloud-lightning', color: '#FFA500' }, // 주황색(번개)
+    };
+
+    const { name, color } = iconMap[icon] || { name: 'cloud', color: 'gray' };
+
+    return <Feather name={name} size={40} color={color} />;
+};
+
 
 	if (loading || !currentWeather) {
 		return (
@@ -261,9 +282,9 @@ const WeatherScreen = () => {
 					{/* Air Quality Information */}
 
 					<Text style={styles.sectionTitle}>Air Quality</Text>
-					{Array.isArray(airQuality) && airQuality.length > 0 ? (
-						<View style={styles.gridContainer}>
-							{airQuality.map((item, index) => (
+					<View style={styles.gridContainer}>
+						{Array.isArray(airQuality) && airQuality.length > 0 ? (
+							airQuality.map((item, index) => (
 								<View key={index} style={styles.airQualityGridItem}>
 									<Text style={styles.airQualityParameter}>{item.parameter}</Text>
 									<Text style={styles.airQualityValue}>{item.value} {item.unit}</Text>
@@ -278,17 +299,27 @@ const WeatherScreen = () => {
 											]}
 										/>
 									</View>
-									<Text style={styles.airQualityStatus}>
-										{getAirQualityStatus(item.parameter, item.value).status}
-									</Text>
 								</View>
-							))}
-						</View>
-					) : (
-						<Text style={styles.noDataText}>Air quality data is not available.</Text>
-					)}
+							))
+						) : (
+							// 데이터를 못받았을 경우 기본 상태로 게이지만 보여주기
+							['pm25', 'pm10', 'o3', 'no2', 'so2', 'co'].map((parameter, index) => (
+								<View key={index} style={styles.airQualityGridItem}>
+									<Text style={styles.airQualityParameter}>{parameter}</Text>
+									<Text style={styles.airQualityValue}>N/A</Text>
+									<View style={styles.gaugeContainer}>
+										<View
+											style={[
+												styles.gaugeFill,
+												{ width: '0%', backgroundColor: '#e0e0e0' },
+											]}
+										/>
+									</View>
+								</View>
+							))
+						)}
+					</View>
 				</View>
-
 				{/* sunTimes Information */}
 
 				<View style={styles.sunTimesContainer}>
@@ -335,14 +366,14 @@ const styles = StyleSheet.create({
 		marginBottom: 20,
 	},
 	date: {
-		fontSize: 18,
+		fontSize: 15,
 		color: 'rgba(255, 255, 255, 0.7)',
 	},
 	dateLeft: {
 		alignSelf: 'flex-start',
 	},
 	city: {
-		fontSize: 17,
+		fontSize: 23,
 		color: 'rgba(255, 255, 255, 0.7)',
 	},
 	weatherInfoContainer: {

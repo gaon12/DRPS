@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, SafeAreaView, StyleSheet, Text, Alert, TouchableOpacity } from 'react-native';
-import { List, Switch, IconButton, Divider } from 'react-native-paper';
+import { List, Switch, IconButton, Divider, Portal, Modal, RadioButton } from 'react-native-paper';
+import * as Localization from 'expo-localization';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import { Linking } from 'react-native';
@@ -8,6 +9,13 @@ import * as Updates from 'expo-updates';
 import { SettingsContext } from '../../Context';
 import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
+
+const languages = {
+	ko: '한국어',
+	en: 'English',
+	ja: '日本語',
+	zh: '中文',
+};
 
 const SettingsScreen = () => {
 	const { settings, updateSetting } = useContext(SettingsContext);
@@ -18,6 +26,9 @@ const SettingsScreen = () => {
 	const [buildClickCount, setBuildClickCount] = useState(0);
 	const navigation = useNavigation();
 	const clickResetInterval = 1000; // 1 second click reset
+	const [language, setLanguage] = useState(Localization.locale.substring(0, 2)); // 기본 언어 설정
+	const [isLanguageModalVisible, setLanguageModalVisible] = useState(false);
+
 
 	useEffect(() => {
 		const fetchSettings = async () => {
@@ -26,6 +37,10 @@ const SettingsScreen = () => {
 				setIsDarkMode(darkModeValue === 'Yes');
 				setUseWebview(settings.webviewUsage); // Context로부터 가져옴
 				setEnableLabs(await SecureStore.getItemAsync('Settings_Enable_Labs') === 'Yes');
+				const storedLanguage = await SecureStore.getItemAsync('Settings_Language');
+				if (storedLanguage) {
+					setLanguage(storedLanguage);
+				}
 			} catch (error) {
 				console.error('Error loading settings:', error);
 			}
@@ -40,6 +55,19 @@ const SettingsScreen = () => {
 		await SecureStore.setItemAsync('Settings_DarkMode', newDarkMode ? 'Yes' : 'No');
 		updateSetting('isDarkMode', newDarkMode);
 	};
+
+	const changeLanguage = async (newLanguage) => {
+		setLanguage(newLanguage);
+		setLanguageModalVisible(false); // 언어 선택 후 모달 닫기
+		await SecureStore.setItemAsync('Settings_Language', newLanguage);
+		updateSetting('language', newLanguage); // Context 업데이트
+		Toast.show({
+			type: 'success',
+			text1: `Language changed to ${languages[newLanguage]}`,
+			position: 'top',
+		});
+	};
+
 
 	const handleVersionClick = () => {
 		navigation.navigate('VersionInfo');
@@ -184,6 +212,27 @@ const SettingsScreen = () => {
 						descriptionStyle={isDarkMode ? styles.darkDescription : styles.lightDescription}
 					/>
 					<List.Item
+						title="Language"
+						left={() => <IconButton icon="ab-testing" color={iconColor} />}
+						description={languages[language]}
+						onPress={() => setLanguageModalVisible(true)}
+					/>
+					<Portal>
+						<Modal
+							visible={isLanguageModalVisible}
+							onDismiss={() => setLanguageModalVisible(false)}
+							contentContainerStyle={styles.modalContainer}
+						>
+							<Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>언어 선택</Text>
+							<RadioButton.Group onValueChange={changeLanguage} value={language}>
+								{Object.entries(languages).map(([key, label]) => (
+									<RadioButton.Item key={key} label={label} value={key} />
+								))}
+							</RadioButton.Group>
+						</Modal>
+					</Portal>
+
+					<List.Item
 						title="GitHub/Discord Links"
 						left={() => <IconButton icon="github" color={iconColor} />}
 						titleStyle={isDarkMode ? styles.darkText : styles.lightText}
@@ -233,6 +282,13 @@ const styles = StyleSheet.create({
 	},
 	darkDescription: {
 		color: '#cfcfcf',
+	},
+	modalContainer: {
+		backgroundColor: 'white', // 모달 배경색 설정
+		padding: 20,
+		margin: 20,
+		borderRadius: 8,
+		elevation: 5, // 그림자 효과
 	},
 });
 
