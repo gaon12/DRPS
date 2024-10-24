@@ -1,26 +1,23 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { StyleSheet, View, TouchableOpacity, Animated, Text, Alert } from "react-native";
 import MapView, { Marker, UrlTile, Callout } from "react-native-maps";
-import * as Location from "expo-location";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
-import axios from "axios";
+import axios from 'axios'; // axios 임포트
 import { SettingsContext } from '../../Context';
 import ShelterDetailsModal from './modal/ShelterDetailsModal';
 
 const Map = () => {
     const mapRef = useRef(null);
     const { settings } = useContext(SettingsContext);
-    const { useOpenStreetMap } = settings;
+    const { useOpenStreetMap, location } = settings;
 
     const [region, setRegion] = useState({
-        latitude: 37.5665,
-        longitude: 126.978,
+        latitude: location.latitude || 37.5665,
+        longitude: location.longitude || 126.978,
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
     });
-    const [currentLocation, setCurrentLocation] = useState(null);
-    const [isLoadingLocation, setIsLoadingLocation] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const animatedHeight = useRef(new Animated.Value(50)).current;
     const [toggleStates, setToggleStates] = useState([false, false, false]);
@@ -33,45 +30,18 @@ const Map = () => {
     const shelterColors = ["#00FF00", "#FF4500", "#1E90FF"];
 
     useEffect(() => {
-        const fetchLocation = async () => {
-            setIsLoadingLocation(true);
-            Toast.show({
-                type: "info",
-                text1: "현재 위치를 찾고 있습니다...",
-                position: "top",
-            });
+        // context에서 가져온 좌표로 지도 이동
+        moveToCurrentLocation(location.latitude, location.longitude);
+    }, [location]);
 
-            try {
-                const { status } = await Location.requestForegroundPermissionsAsync();
-                if (status !== "granted") {
-                    console.log("위치 권한이 거부되었습니다.");
-                    setIsLoadingLocation(false);
-                    return;
-                }
-
-                const userLocation = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low });
-                const { latitude, longitude } = userLocation.coords;
-
-                setCurrentLocation({ latitude, longitude });
-                setRegion(prevRegion => ({
-                    ...prevRegion,
-                    latitude,
-                    longitude,
-                }));
-                moveToCurrentLocation();
-            } catch (error) {
-                console.error("Error fetching location:", error);
-            } finally {
-                setIsLoadingLocation(false);
-            }
-        };
-
-        fetchLocation();
-    }, []);
-
-    const moveToCurrentLocation = () => {
-        if (currentLocation && mapRef.current) {
-            mapRef.current.animateToRegion({ ...currentLocation, latitudeDelta: 0.01, longitudeDelta: 0.01 }, 1000);
+    const moveToCurrentLocation = (latitude, longitude) => {
+        if (mapRef.current) {
+            mapRef.current.animateToRegion({
+                latitude,
+                longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+            }, 1000);
         }
     };
 
@@ -87,21 +57,20 @@ const Map = () => {
         const zoomLevel = calculateZoomLevel(region.latitudeDelta);
         const activeShelterTypes = shelterTypes.filter((_, index) => toggleStates[index]);
 
-        const requests = activeShelterTypes.map(type =>
-            axios.get(`https://apis.uiharu.dev/drps/shelters/api.php`, {
-                params: {
-                    ShelterType: type,
-                    latitude: region.latitude,
-                    longitude: region.longitude,
-                    distance: zoomLevel,
-                    pageNo,
-                    numOfRows: 10,
-                }
-            })
-        );
-
         try {
-            const results = await Promise.all(requests);
+            const results = await Promise.all(
+                activeShelterTypes.map(type => axios.get(`https://apis.uiharu.dev/drps/shelters/api.php`, {
+                    params: {
+                        ShelterType: type,
+                        latitude: region.latitude,
+                        longitude: region.longitude,
+                        distance: zoomLevel,
+                        pageNo,
+                        numOfRows: 10,
+                    }
+                }))
+            );
+
             const allShelters = results.flatMap((result, index) => {
                 if (result.data.StatusCode === 200) {
                     const type = activeShelterTypes[index];
@@ -114,6 +83,7 @@ const Map = () => {
                 }
                 return [];
             });
+
             const uniqueShelters = filterUniqueSheltersByCoordinates(allShelters);
             setShelters(uniqueShelters);
             updateFilteredShelters(uniqueShelters, zoomLevel);
@@ -189,7 +159,7 @@ const Map = () => {
 
     return (
         <View style={styles.container}>
-            <TouchableOpacity style={styles.locationButton} onPress={moveToCurrentLocation}>
+            <TouchableOpacity style={styles.locationButton} onPress={() => moveToCurrentLocation(location.latitude, location.longitude)}>
                 <Ionicons name="locate" size={24} color="white" />
             </TouchableOpacity>
 
@@ -227,9 +197,10 @@ const Map = () => {
                     <Marker coordinate={{ latitude: 37.5665, longitude: 126.978 }} title="서울시청" description="서울특별시의 중심" />
                 )}
 
-                {currentLocation && (
+                {/* 사용자의 현재 위치를 고정해서 표시 */}
+                {location.latitude && location.longitude && (
                     <Marker
-                        coordinate={currentLocation}
+                        coordinate={{ latitude: location.latitude, longitude: location.longitude }}
                         title="현재 위치"
                         pinColor="#FF0000"
                     />
@@ -310,6 +281,14 @@ const styles = StyleSheet.create({
     map: {
         flex: 1,
     },
+    calloutAddress: {
+        fontSize: 14,
+        fontWeight: "bold",
+    },
+    calloutDistance: {
+        fontSize: 12,
+        color: "#555",
+    },
     licenseContainer: {
         position: "absolute",
         bottom: 10,
@@ -328,14 +307,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         width: '100%',
     },
-    calloutAddress: {
-        fontSize: 14,
-        fontWeight: "bold",
-    },
-    calloutDistance: {
-        fontSize: 12,
-        color: "#555",
-    },
+    
 });
 
 export default Map;

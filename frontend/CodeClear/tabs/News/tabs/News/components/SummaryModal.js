@@ -1,7 +1,7 @@
 // ./components/SummaryModal.js
 import React, { useContext } from "react";
 import { Modal, Portal, Button, Text } from "react-native-paper";
-import { StyleSheet } from "react-native";
+import { StyleSheet, ScrollView  } from "react-native";
 import PropTypes from "prop-types";
 import { SettingsContext } from "../../../../../Context"; // Adjusted path
 
@@ -14,8 +14,9 @@ const SummaryModal = ({ visible, onDismiss, summaryText, currentSummary, onNextS
 		<Portal>
 			<Modal visible={visible} onDismiss={onDismiss} contentContainerStyle={currentStyles.modalContainer}>
 				<Text style={currentStyles.modalTitle}>요약</Text>
+				<ScrollView style={{ maxHeight: 300 }}> 
 				<Text style={currentStyles.modalText}>{summaryText[currentSummary]}</Text>
-
+				</ScrollView>
 				{summaryText.length > 1 && summaryText[0] !== summaryText[1] && (
 					<Button mode="outlined" onPress={onNextSummary} style={currentStyles.nextButton} labelStyle={currentStyles.nextButtonText}>
 						다른 요약 보기

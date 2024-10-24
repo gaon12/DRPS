@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons'; // 아이콘 사용을 위한 import
 import { useNavigation } from '@react-navigation/native';
+import * as Location from 'expo-location'; // 위치 정보 가져오기 위한 import
+import axios from 'axios'; // 위치 정보에서 시, 군, 구 정보를 가져오기 위한 import
+import { SettingsContext } from '../../Context'; // Context import
 
 // Function to determine the banner size based on device type and screen dimensions
 const getBannerSize = () => {
@@ -34,16 +37,48 @@ const App = () => {
     const scrollViewRef = useRef(null);
     const slideInterval = useRef(null);
     const deviceType = getDeviceType();
+    const { settings, updateLocation } = useContext(SettingsContext); // Use Context
+    const [city, setCity] = useState('현재 위치를 알 수 없거나 도외입니다'); // 위치 정보를 표시할 상태
 
-    // Function to get the correct local default image based on the device type
-    const getDefaultImage = () => {
-        const images = {
-            pc: require('./imgs/pc_default_banner.png'),
-            tablet: require('./imgs/tablet_default_banner.png'),
-            mobile: require('./imgs/mobile_default_banner.png'),
+    // 위치 정보를 가져오는 함수
+    useEffect(() => {
+        const fetchLocation = async () => {
+            try {
+                const { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== 'granted') {
+                    console.log('위치 권한이 거부되었습니다.');
+                    return;
+                }
+
+                const userLocation = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+                const { latitude, longitude } = userLocation.coords;
+                updateLocation(latitude, longitude); // 위치 정보 저장
+                fetchCityName(latitude, longitude); // 시,군,구 이름 가져오기
+            } catch (error) {
+                console.error('위치 정보 가져오는 중 오류 발생:', error);
+            }
         };
-        return images[deviceType] || images.mobile;
-    };
+
+        const fetchCityName = async (latitude, longitude) => {
+            try {
+                const response = await axios.get(
+                    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`,
+                    {
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        },
+                    }
+                );
+                const address = response.data.address;
+                const combinedLocation = `${address.city || ''} ${address.borough || ''} ${address.residential || ''}`.trim();
+                setCity(combinedLocation || 'Unknown Location');
+            } catch (error) {
+                console.error('Error fetching city name:', error);
+            }
+        };
+
+        fetchLocation();
+    }, []);
 
     useEffect(() => {
         // Update banner size when the screen dimensions change
@@ -58,13 +93,13 @@ const App = () => {
         slideInterval.current = setInterval(() => {
             const nextIndex = (currentSlideIndex + 1) % slides.length;
             scrollViewRef.current?.scrollTo({
-                x: bannerSize.width * nextIndex,
+                x: bannerSize.width * nextIndex,  // 가로로 슬라이드를 넘김
                 animated: true,
             });
             setCurrentSlideIndex(nextIndex);
-        }, 5000); // Auto-slide interval set to 5 seconds
+        }, 5000); // 5초 간격으로 슬라이드 이동
 
-        return () => clearInterval(slideInterval.current);
+        return () => clearInterval(slideInterval.current);  // 컴포넌트 unmount 시 인터벌 제거
     }, [currentSlideIndex, bannerSize.width]);
 
     // 로컬 이미지 파일을 사용하여 슬라이드 정의
@@ -92,122 +127,119 @@ const App = () => {
     const isColor = (str) => /^#[0-9A-F]{6}$/i.test(str);
 
     return (
-        <View style={styles.container}>
-            <ScrollView ref={scrollViewRef} style={styles.scrollView}>
-                <View style={[styles.bannerContainer, { height: bannerSize.height }]}>
-                    <ScrollView
-                        horizontal
-                        pagingEnabled
-                        showsHorizontalScrollIndicator={false}
-                        onScroll={handleScroll}
-                        scrollEventThrottle={16}
-                        ref={scrollViewRef} // Ensure ref is set correctly
-                    >
-                        {slides.map((slide, index) => (
-                            <View
-                                key={index}
-                                style={[
-                                    styles.slide,
-                                    bannerSize,
-                                    isColor(slide.imageUrl) ? { backgroundColor: slide.imageUrl } : {},
-                                ]}
-                            >
-                                {!isColor(slide.imageUrl) && !imageError[index] ? (
-                                    <Image
-                                        source={slide.imageUrl} // 로컬 이미지일 경우 바로 사용
-                                        style={[styles.bannerImage, bannerSize]}
-                                        onError={() => handleImageError(index)}
-                                        resizeMode="contain"
-                                    />
-                                ) : imageError[index] ? (
-                                    <Image
-                                        source={getDefaultImage()}
-                                        style={[styles.bannerImage, bannerSize]}
-                                        resizeMode="contain"
-                                    />
-                                ) : (
-                                    <View style={[styles.bannerPlaceholder, bannerSize]}>
-                                        <Text style={styles.slideTitle}>{slide.title}</Text>
-                                        <Text style={styles.slideSubtitle}>{slide.subtitle}</Text>
-                                    </View>
-                                )}
-                                <Text style={styles.pageIndicator}>
-                                    {index + 1} / {slides.length}
-                                </Text>
-                            </View>
-                        ))}
-                    </ScrollView>
-                </View>
-
-                {/* Other scrollable content */}
-                <View style={styles.locationInfo}>
-                    <TouchableOpacity style={styles.smallLocationButton}>
-                        <Text style={styles.buttonText}>현재 위치를 알 수 없거나 도외입니다</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.smallLocationButton}>
-                        <Text style={styles.buttonText}>지역 설정</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.smallLocationButton}>
-                        <Text style={styles.buttonText}>설정 지역에 관한 간단한 재난정보</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <Text style={styles.sectionTitle}>재난 정보 확인</Text>
-                
-                {/* 가로 스크롤 가능한 재난 정보 확인 탭 */}
-                <ScrollView 
-                    horizontal 
-                    showsHorizontalScrollIndicator={false} 
-                    contentContainerStyle={styles.gridHorizontal}
+        <ScrollView style={styles.container}>
+            {/* 슬라이드 배너 부분 */}
+            <View style={[styles.bannerContainer, { height: bannerSize.height }]}>
+                <ScrollView
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    onScroll={handleScroll}
+                    scrollEventThrottle={16}
+                    ref={scrollViewRef} // Ensure ref is set correctly
                 >
-                    <TouchableOpacity style={styles.card}>
-						<Icon name="earth-outline" size={40} color="#A0D6E0" /> 
-                        <Text style={styles.cardText}>자연 재난</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.card}>
-						<Icon name="alert-circle-outline" size={40} color="#FFD700" /> 
-                        <Text style={styles.cardText}>사회 재난</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.card}>
-						<Icon name="sunny-outline" size={40} color="#82E682" /> 
-                        <Text style={styles.cardText}>생활 재난</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.card}>
-						<Icon name="medical-outline" size={40} color="#FFB6C1" /> 
-                        <Text style={styles.cardText}>비상 재난</Text>
-                    </TouchableOpacity>
+                    {slides.map((slide, index) => (
+                        <View
+                            key={index}
+                            style={[
+                                styles.slide,
+                                bannerSize,
+                                isColor(slide.imageUrl) ? { backgroundColor: slide.imageUrl } : {},
+                            ]}
+                        >
+                            {!isColor(slide.imageUrl) && !imageError[index] ? (
+                                <Image
+                                    source={slide.imageUrl} // 로컬 이미지일 경우 바로 사용
+                                    style={[styles.bannerImage, bannerSize]}
+                                    onError={() => handleImageError(index)}
+                                    resizeMode="contain"
+                                />
+                            ) : imageError[index] ? (
+                                <Image
+                                    source={getDefaultImage()}
+                                    style={[styles.bannerImage, bannerSize]}
+                                    resizeMode="contain"
+                                />
+                            ) : (
+                                <View style={[styles.bannerPlaceholder, bannerSize]}>
+                                    <Text style={styles.slideTitle}>{slide.title}</Text>
+                                    <Text style={styles.slideSubtitle}>{slide.subtitle}</Text>
+                                </View>
+                            )}
+                            <Text style={styles.pageIndicator}>
+                                {index + 1} / {slides.length}
+                            </Text>
+                        </View>
+                    ))}
                 </ScrollView>
+            </View>
 
-                <Text style={[styles.sectionTitle, { paddingTop: 20 }]}>평소에 대비하기</Text>
-                <View style={styles.grid}>
-                    <TouchableOpacity style={styles.card}>
-                        <Text style={styles.cardText}>체크 리스트</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.card}>
-                        <Text style={styles.cardText}>피난 시뮬레이션</Text>
-                    </TouchableOpacity>
-                </View>
+            {/* 세로로 스크롤 가능한 나머지 내용 */}
+            <View style={styles.locationInfo}>
+                <TouchableOpacity style={styles.smallLocationButton}>
+                    <Text style={styles.buttonText}>{city}</Text> 
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.smallLocationButton}>
+                    <Text style={styles.buttonText}>지역 설정</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.smallLocationButton}>
+                    <Text style={styles.buttonText}>설정 지역에 관한 간단한 재난정보</Text>
+                </TouchableOpacity>
+            </View>
 
-                <Text style={styles.sectionTitle}>기타</Text>
-                <ScrollView 
-                    horizontal 
-                    showsHorizontalScrollIndicator={false} 
-                    contentContainerStyle={styles.gridHorizontal}
-                >
-                <View style={styles.grid}>
-                    <TouchableOpacity style={styles.card}>
-                        <Text style={styles.cardText}>행정안전부 바로가기</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.card}>
-                        <Text style={styles.cardText}>공지사항</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.card}>
-                        <Text style={styles.cardText}>업데이트 내역</Text>
-                    </TouchableOpacity>
-                </View>
-                </ScrollView>
+            <Text style={styles.sectionTitle}>재난 정보 확인</Text>
+            
+            {/* 가로 스크롤 가능한 재난 정보 확인 탭 */}
+            <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false} 
+                contentContainerStyle={styles.gridHorizontal}
+            >
+                <TouchableOpacity style={styles.card}>
+                    <Icon name="earth-outline" size={40} color="#A0D6E0" /> 
+                    <Text style={styles.cardText}>자연 재난</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.card}>
+                    <Icon name="alert-circle-outline" size={40} color="#FFD700" /> 
+                    <Text style={styles.cardText}>사회 재난</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.card}>
+                    <Icon name="sunny-outline" size={40} color="#82E682" /> 
+                    <Text style={styles.cardText}>생활 재난</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.card}>
+                    <Icon name="medical-outline" size={40} color="#FFB6C1" /> 
+                    <Text style={styles.cardText}>비상 재난</Text>
+                </TouchableOpacity>
             </ScrollView>
-        </View>
+
+            <Text style={[styles.sectionTitle, { paddingTop: 20 }]}>평소에 대비하기</Text>
+            <View style={styles.grid}>
+                <TouchableOpacity style={styles.card}>
+                    <Text style={styles.cardText}>체크 리스트</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.card}>
+                    <Text style={styles.cardText}>피난 시뮬레이션</Text>
+                </TouchableOpacity>
+            </View>
+
+            <Text style={styles.sectionTitle}>기타</Text>
+            <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false} 
+                contentContainerStyle={styles.gridHorizontal}
+            >
+                <TouchableOpacity style={styles.card}>
+                    <Text style={styles.cardText}>행정안전부 바로가기</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.card}>
+                    <Text style={styles.cardText}>공지사항</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.card}>
+                    <Text style={styles.cardText}>업데이트 내역</Text>
+                </TouchableOpacity>
+            </ScrollView>
+        </ScrollView>
     );
 };
 
@@ -299,8 +331,8 @@ const styles = StyleSheet.create({
     },
     cardText: {
         fontSize: 14,
-		marginTop: 10,
-		fontWeight: 'bold',
+        marginTop: 10,
+        fontWeight: 'bold',
     },
     grid: {
         flexDirection: 'row',
