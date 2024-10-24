@@ -32,6 +32,8 @@ function validate_numeric($value, $default = null, $min = null, $max = null) {
 try {
     // 파라미터 처리
     $yna_no = isset($_GET['yna_no']) ? $_GET['yna_no'] : null;
+    $title = isset($_GET['title']) ? $_GET['title'] : null;
+    $text = isset($_GET['text']) ? $_GET['text'] : null;
     $pageNo = validate_numeric($_GET['pageNo'] ?? null, 1, 1);
     $numOfRows = validate_numeric($_GET['numOfRows'] ?? null, 5, 1, 10);
 
@@ -52,11 +54,32 @@ try {
         }
     }
 
-    // yna_no가 없는 경우, 페이지 기반 데이터 반환 (최신순으로 정렬)
-    $offset = ($pageNo - 1) * $numOfRows;
-    $stmt = $pdo->prepare("SELECT * FROM disaster_news ORDER BY crt_dt DESC LIMIT :limit OFFSET :offset");
+    // SQL 동적 조건 추가를 위한 기본 쿼리
+    $query = "SELECT * FROM disaster_news WHERE 1=1";
+    $params = [];
+
+    // title 파라미터가 있으면 조건 추가
+    if ($title !== null) {
+        $query .= " AND yna_ttl LIKE :title";
+        $params[':title'] = "%$title%";
+    }
+
+    // text 파라미터가 있으면 조건 추가
+    if ($text !== null) {
+        $query .= " AND yna_cn LIKE :text";
+        $params[':text'] = "%$text%";
+    }
+
+    // 페이지와 갯수 조건 추가
+    $query .= " ORDER BY crt_dt DESC LIMIT :limit OFFSET :offset";
+    
+    // 준비된 쿼리 실행
+    $stmt = $pdo->prepare($query);
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, $value, PDO::PARAM_STR);
+    }
     $stmt->bindValue(':limit', $numOfRows, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', ($pageNo - 1) * $numOfRows, PDO::PARAM_INT);
     $stmt->execute();
     $newsList = $stmt->fetchAll();
 
@@ -65,7 +88,7 @@ try {
     } else {
         send_response(404, "No news found for pageNo: $pageNo");
     }
-    
+
 } catch (PDOException $e) {
     send_response(500, "Failed to connect to the database: " . $e->getMessage());
 }
