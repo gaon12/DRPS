@@ -45,15 +45,6 @@ const App = () => {
         return images[deviceType] || images.mobile;
     };
 
-    // Adjust image URL based on device type
-    const adjustImageUrl = (url) => {
-        if (!url) return '';
-        const parts = url.split('/');
-        const filename = parts.pop();
-        const [name, ext] = filename.split('.');
-        return `${parts.join('/')}/${deviceType}_${name}.${ext}`;
-    };
-
     useEffect(() => {
         // Update banner size when the screen dimensions change
         const handleResize = () => setBannerSize(getBannerSize());
@@ -76,10 +67,11 @@ const App = () => {
         return () => clearInterval(slideInterval.current);
     }, [currentSlideIndex, bannerSize.width]);
 
+    // 로컬 이미지 파일을 사용하여 슬라이드 정의
     const slides = [
-        { title: 'CODECLEAR', subtitle: '프로젝트 파이팅.', imageUrl: 'https://example.com/first_banner.png' },
-        { title: '슬라이드 2', subtitle: '추가적인 설명을 여기에 입력하세요.', imageUrl: '#ff0000' },
-        { title: '슬라이드 3', subtitle: '이 부분도 사용자 정의 가능합니다.', imageUrl: '' },
+        { title: 'CODECLEAR', subtitle: '프로젝트 파이팅.', imageUrl: require('./imgs/tem_1.webp') },
+        { title: '슬라이드 2', subtitle: '추가적인 설명을 여기에 입력하세요.', imageUrl: require('./imgs/tem_2.png') },
+        { title: '슬라이드 3', subtitle: '이 부분도 사용자 정의 가능합니다.', imageUrl: require('./imgs/tem_3.png') },
     ];
 
     const handleScroll = (event) => {
@@ -111,42 +103,39 @@ const App = () => {
                         scrollEventThrottle={16}
                         ref={scrollViewRef} // Ensure ref is set correctly
                     >
-                        {slides.map((slide, index) => {
-                            const adjustedImageUrl = adjustImageUrl(slide.imageUrl);
-                            return (
-                                <View
-                                    key={index}
-                                    style={[
-                                        styles.slide,
-                                        bannerSize,
-                                        isColor(slide.imageUrl) ? { backgroundColor: slide.imageUrl } : {},
-                                    ]}
-                                >
-                                    {!isColor(slide.imageUrl) && adjustedImageUrl && !imageError[index] ? (
-                                        <Image
-                                            source={{ uri: adjustedImageUrl }}
-                                            style={[styles.bannerImage, bannerSize]}
-                                            onError={() => handleImageError(index)}
-                                            resizeMode="contain"
-                                        />
-                                    ) : imageError[index] || !adjustedImageUrl ? (
-                                        <Image
-                                            source={getDefaultImage()}
-                                            style={[styles.bannerImage, bannerSize]}
-                                            resizeMode="contain"
-                                        />
-                                    ) : (
-                                        <View style={[styles.bannerPlaceholder, bannerSize]}>
-                                            <Text style={styles.slideTitle}>{slide.title}</Text>
-                                            <Text style={styles.slideSubtitle}>{slide.subtitle}</Text>
-                                        </View>
-                                    )}
-                                    <Text style={styles.pageIndicator}>
-                                        {index + 1} / {slides.length}
-                                    </Text>
-                                </View>
-                            );
-                        })}
+                        {slides.map((slide, index) => (
+                            <View
+                                key={index}
+                                style={[
+                                    styles.slide,
+                                    bannerSize,
+                                    isColor(slide.imageUrl) ? { backgroundColor: slide.imageUrl } : {},
+                                ]}
+                            >
+                                {!isColor(slide.imageUrl) && !imageError[index] ? (
+                                    <Image
+                                        source={slide.imageUrl} // 로컬 이미지일 경우 바로 사용
+                                        style={[styles.bannerImage, bannerSize]}
+                                        onError={() => handleImageError(index)}
+                                        resizeMode="contain"
+                                    />
+                                ) : imageError[index] ? (
+                                    <Image
+                                        source={getDefaultImage()}
+                                        style={[styles.bannerImage, bannerSize]}
+                                        resizeMode="contain"
+                                    />
+                                ) : (
+                                    <View style={[styles.bannerPlaceholder, bannerSize]}>
+                                        <Text style={styles.slideTitle}>{slide.title}</Text>
+                                        <Text style={styles.slideSubtitle}>{slide.subtitle}</Text>
+                                    </View>
+                                )}
+                                <Text style={styles.pageIndicator}>
+                                    {index + 1} / {slides.length}
+                                </Text>
+                            </View>
+                        ))}
                     </ScrollView>
                 </View>
 
