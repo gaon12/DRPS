@@ -13,6 +13,7 @@ $emergency_step = $_GET['emergency_step'] ?? null;
 $serial_number = $_GET['serial_number'] ?? null;
 $disaster_type = $_GET['disaster_type'] ?? null;
 $region_name = $_GET['region_name'] ?? null;
+$text = $_GET['text'] ?? null; // 재난문자 검색
 
 // 페이지 계산
 $offset = ($pageNo - 1) * $numOfRows;
@@ -52,6 +53,11 @@ if ($disaster_type) {
 if ($region_name) {
     $query .= " AND region_name LIKE :region_name_sub";
     $subParams[':region_name_sub'] = '%' . $region_name . '%';
+}
+
+if ($text) {
+    $query .= " AND message_content LIKE :text_sub"; // message_content에서 검색
+    $subParams[':text_sub'] = '%' . $text . '%'; // 부분 일치 검색
 }
 
 $query .= "
