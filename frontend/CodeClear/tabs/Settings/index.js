@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, SafeAreaView, StyleSheet, Text, Alert, TouchableOpacity } from 'react-native';
 import { List, Switch, IconButton, Divider, Portal, Modal, RadioButton } from 'react-native-paper';
-import * as Localization from 'expo-localization';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import { Linking } from 'react-native';
@@ -22,11 +21,10 @@ const SettingsScreen = () => {
 	const [isDarkMode, setIsDarkMode] = useState(false);
 	const [useWebview, setUseWebview] = useState(false);
 	const [enableLabs, setEnableLabs] = useState(false);
-	const [clickCount, setClickCount] = useState(0);
 	const [buildClickCount, setBuildClickCount] = useState(0);
 	const navigation = useNavigation();
 	const clickResetInterval = 1000; // 1 second click reset
-	const [language, setLanguage] = useState(Localization.locale.substring(0, 2)); // 기본 언어 설정
+	const [language, setLanguage] = useState('ko');
 	const [isLanguageModalVisible, setLanguageModalVisible] = useState(false);
 
 

@@ -22,11 +22,11 @@ const NewsList = ({ navigation }) => {
 	
 			// 인코딩 없이 요청 URL 생성
 			const requestUrl = `https://apis.uiharu.dev/drps/news/api.php?pageNo=${pageNo}&title=${title}`;
-			console.log("Requesting URL (without encoding):", requestUrl);
+			//console.log("Requesting URL (without encoding):", requestUrl);
 	
 			const response = await axios.get(requestUrl);
 	
-			console.log("API Response:", response.data);
+			//console.log("API Response:", response.data);
 	
 			if (response.data.StatusCode === 200) {
 				const cleanedData = response.data.data.map(cleanContent);
