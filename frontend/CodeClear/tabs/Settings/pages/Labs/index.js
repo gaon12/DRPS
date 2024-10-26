@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { SafeAreaView, StyleSheet, ScrollView, Text, View } from 'react-native';
-import { List, Switch, IconButton, Portal, Provider } from 'react-native-paper'; // Portal, Provider 추가
+import { List, Switch, IconButton, Portal, Provider } from 'react-native-paper'; 
 import * as SecureStore from 'expo-secure-store';
 import { SettingsContext } from '../../../../Context';
 import TTSModal from './TTSModal'; // TTSModal import
@@ -24,20 +24,22 @@ const LabsScreen = () => {
     };
 
     const toggleTTSUsage = async () => {
-        const newUseTTs = !useTTs;
-        updateSetting('useTTs', newUseTTs); // TTS 사용 여부 업데이트
+        const newUseTTs = !settings.useTTs;
     
-        if (!newUseTTs) {
-            // TTS 비활성화 시 Secure Store에 빈 값 저장
-            try {
+        try {
+            await SecureStore.setItemAsync('Settings_UseTTs', newUseTTs ? 'Yes' : 'No');
+            updateSetting('useTTs', newUseTTs);
+    
+            if (!newUseTTs) {
                 const emptySettings = { language: {}, ttsService: '' };
                 await SecureStore.setItemAsync('TTS_Settings', JSON.stringify(emptySettings));
-                updateSetting('ttsOption', emptySettings); // Context에 초기값 전달
-            } catch (error) {
+                updateSetting('ttsOption', emptySettings);
             }
-        }
     
-        setTtsModalVisible(newUseTTs); // 스위치 상태에 따라 모달 표시
+            setTtsModalVisible(newUseTTs);
+        } catch (error) {
+            console.error('TTS 설정 저장 중 오류가 발생했습니다:', error);
+        }
     };
 
     const handleSave = async (settings) => {
@@ -87,11 +89,11 @@ const LabsScreen = () => {
                             TTS Settings
                         </Text>
                         <List.Item
-                            title="Use TTS"
-                            left={() => <IconButton icon="microphone" />}
-                            right={() => <Switch value={useTTs} onValueChange={toggleTTSUsage} />}
-                        />
-                        {useTTs &&  <TTSModal onSave={handleSave} />}
+    title="Use TTS"
+    left={() => <IconButton icon="microphone" />}
+    right={() => <Switch value={settings.useTTs} onValueChange={toggleTTSUsage} />}
+/>
+{settings.useTTs && <TTSModal onSave={handleSave} />}
                     </List.Section>
                 </ScrollView>
             </SafeAreaView>

@@ -71,31 +71,31 @@ const WeatherScreen = () => {
 
 	const fetchCityName = async (latitude, longitude) => {
 		try {
-		  const response = await axios.get(
-			`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`,
-			{
-			  headers: {
-				'User-Agent': 'WeatherApp/1.0 (weather@app.com)',
-			  },
-			}
-		  );
-	  
-		  const address = response.data.address;
-		  const combinedLocation = [
-			address.city,
-			address.borough,
-			address.quarter,
-		  ]
-			.filter(Boolean) // 값이 있는 것만 남기기
-			.join(' '); // 공백으로 합치기
-	  
-		  setCity(combinedLocation || 'Unknown Location');
+			const response = await axios.get(
+				`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`,
+				{
+					headers: {
+						'User-Agent': 'WeatherApp/1.0 (weather@app.com)',
+					},
+				}
+			);
+
+			const address = response.data.address;
+			const combinedLocation = [
+				address.city,
+				address.borough,
+				address.quarter,
+			]
+				.filter(Boolean) // 값이 있는 것만 남기기
+				.join(' '); // 공백으로 합치기
+
+			setCity(combinedLocation || 'Unknown Location');
 		} catch (error) {
-		  console.error('Error fetching city name:', error);
-		  Alert.alert('Error', 'Failed to fetch city name. Please try again later.');
+			console.error('Error fetching city name:', error);
+			Alert.alert('Error', 'Failed to fetch city name. Please try again later.');
 		}
-	  };
-	  
+	};
+
 
 	const getAirQualityStatus = (parameter, value) => {
 		if (value === null || value === undefined || isNaN(value)) {
@@ -122,8 +122,6 @@ const WeatherScreen = () => {
 		return { status, fill: fillPercentage };
 	};
 
-
-
 	const fetchWeather = async (latitude, longitude) => {
 		try {
 			const response = await axios.get(`https://api.brightsky.dev/weather?lat=${latitude}&lon=${longitude}&date=${new Date().toISOString().split('T')[0]}`);
@@ -134,12 +132,21 @@ const WeatherScreen = () => {
 			let finalHourlyForecast = [...todaysForecast];
 			if (todaysForecast.length < 12) {
 				const nextDayWeather = await axios.get(`https://api.brightsky.dev/weather?lat=${latitude}&lon=${longitude}&date=${new Date(Date.now() + 86400000).toISOString().split('T')[0]}`);
-				console.log(nextDayWeather)
 				const nextDayForecast = nextDayWeather.data.weather.slice(0, 12 - todaysForecast.length);
 				finalHourlyForecast = [...todaysForecast, ...nextDayForecast];
 			}
+
+			const currentWeather = weatherData[0];
+			const feelsLikeTemp = calculateFeelsLikeTemp(currentWeather.temperature, currentWeather.wind_speed);
+			const relativeHumidity = calculateRelativeHumidity(currentWeather.temperature, currentWeather.dew_point);
+
+			setCurrentWeather({
+				...currentWeather,
+				apparent_temperature: feelsLikeTemp,
+				relative_humidity: relativeHumidity,
+			});
+
 			setHourlyForecast(finalHourlyForecast.slice(0, 12));
-			setCurrentWeather(weatherData[0]);
 		} catch (error) {
 			console.error('Failed to fetch weather data:', error);
 		} finally {
@@ -147,10 +154,41 @@ const WeatherScreen = () => {
 		}
 	};
 
+	const calculateFeelsLikeTemp = (temperature, windSpeed) => {
+		const windSpeedKmh = windSpeed * 3.6; // m/s -> km/h 변환
+		return (
+			13.12 + 0.6215 * temperature
+			- 11.37 * Math.pow(windSpeedKmh, 0.16)
+			+ 0.3965 * Math.pow(windSpeedKmh, 0.16) * temperature
+		).toFixed(2);
+	};
+
+	const calculateRelativeHumidity = (temperature, dewPoint) => {
+		const e = 6.11 * Math.pow(10, (7.5 * dewPoint) / (237.3 + dewPoint));
+		const es = 6.11 * Math.pow(10, (7.5 * temperature) / (237.3 + temperature));
+		return ((e / es) * 100).toFixed(2);
+	};
+
+	const estimatePrecipitationByDewPoint = (dewPoint, relativeHumidity, cloudCover) => {
+		if (relativeHumidity === null || dewPoint === null) {
+			return '정보 없음';
+		}
+	
+		if (relativeHumidity > 80 && cloudCover > 70) {
+			return ' 10mm 이상';
+		} else if (relativeHumidity > 60 && dewPoint > 15) {
+			return ' 5~10mm';
+		} else if (relativeHumidity > 40 && dewPoint > 10) {
+			return ' 0.1~5mm';
+		} else {
+			return '0mm (비 없음)';
+		}
+	};
+
 	const fetchAirQuality = async (latitude, longitude) => {
 		try {
 			const response = await axios.get(`https://apis.uiharu.dev/drps/air/api.php?latitude=${latitude}&longitude=${longitude}`);
-			
+
 			if (response.data.StatusCode === 200) {
 				setAirQuality(response.data.data); // 새 JSON 형식에 맞게 데이터를 설정합니다.
 			} else {
@@ -182,7 +220,6 @@ const WeatherScreen = () => {
 		console.log('Long press event triggered');
 		const newStandard = standards === 'WHO' ? 'Korean Ministry' : 'WHO';
 		setStandards(newStandard);
-		console.log(`Standards changed to ${newStandard}`);
 		Alert.alert(
 			'기준 변경',
 			`기준이 ${newStandard}로 변경되었습니다.`,
@@ -191,25 +228,25 @@ const WeatherScreen = () => {
 	};
 
 	const getWeatherIcon = (icon) => {
-    const iconMap = {
-        'clear-day': { name: 'sun', color: '#FE9A2E' }, // 금색(맑은 날)
-        'clear-night': { name: 'moon', color: '#FFD700' }, // 회색(맑은 밤)
-        'partly-cloudy-day': { name: 'cloud', color: '#87CEEB' }, // 하늘색
-        'partly-cloudy-night': { name: 'cloud', color: '#708090' }, // 슬레이트 회색
-        'cloudy': { name: 'cloud', color: '#B0C4DE' }, // 밝은 회색
-        'fog': { name: 'cloud-drizzle', color: '#778899' }, // 어두운 회색
-        'wind': { name: 'wind', color: '#4682B4' }, // 강한 파랑
-        'rain': { name: 'cloud-rain', color: '#1E90FF' }, // 다저블루
-        'sleet': { name: 'cloud-drizzle', color: '#B0E0E6' }, // 밝은 하늘색
-        'snow': { name: 'cloud-drizzle', color: '#ADD8E6' }, // 연한 하늘색
-        'hail': { name: 'cloud', color: '#D3D3D3' }, // 연한 회색
-        'thunderstorm': { name: 'cloud-lightning', color: '#FFA500' }, // 주황색(번개)
-    };
+		const iconMap = {
+			'clear-day': { name: 'sun', color: '#FE9A2E' }, // 금색(맑은 날)
+			'clear-night': { name: 'moon', color: '#FFD700' }, // 회색(맑은 밤)
+			'partly-cloudy-day': { name: 'cloud', color: '#87CEEB' }, // 하늘색
+			'partly-cloudy-night': { name: 'cloud', color: '#708090' }, // 슬레이트 회색
+			'cloudy': { name: 'cloud', color: '#B0C4DE' }, // 밝은 회색
+			'fog': { name: 'cloud-drizzle', color: '#778899' }, // 어두운 회색
+			'wind': { name: 'wind', color: '#4682B4' }, // 강한 파랑
+			'rain': { name: 'cloud-rain', color: '#1E90FF' }, // 다저블루
+			'sleet': { name: 'cloud-drizzle', color: '#B0E0E6' }, // 밝은 하늘색
+			'snow': { name: 'cloud-drizzle', color: '#ADD8E6' }, // 연한 하늘색
+			'hail': { name: 'cloud', color: '#D3D3D3' }, // 연한 회색
+			'thunderstorm': { name: 'cloud-lightning', color: '#FFA500' }, // 주황색(번개)
+		};
 
-    const { name, color } = iconMap[icon] || { name: 'cloud', color: 'gray' };
+		const { name, color } = iconMap[icon] || { name: 'cloud', color: 'gray' };
 
-    return <Feather name={name} size={40} color={color} />;
-};
+		return <Feather name={name} size={40} color={color} />;
+	};
 
 
 	if (loading || !currentWeather) {
@@ -236,18 +273,30 @@ const WeatherScreen = () => {
 				<View style={styles.additionalInfoContainerHorizontal}>
 					<View style={[styles.infoItemHorizontalWithFlex, styles.divider]}>
 						<Feather name="thermometer" size={24} color="white" />
-						<Text style={styles.infoText}>{currentWeather.apparent_temperature ? `${currentWeather.apparent_temperature} °C` : '정보 없음'}</Text>
+						<Text style={styles.infoText}>
+							{currentWeather.apparent_temperature ? `${currentWeather.apparent_temperature} °C` : '정보 없음'}
+						</Text>
 						<Text style={styles.infoText1}>체감</Text>
 					</View>
 					<View style={[styles.infoItemHorizontalWithFlex, styles.divider]}>
 						<Feather name="droplet" size={24} color="white" />
-						<Text style={styles.infoText}>{currentWeather.relative_humidity !== null ? `${currentWeather.relative_humidity} %` : '정보 없음'}</Text>
+						<Text style={styles.infoText}>
+							{currentWeather.relative_humidity !== null ? `${currentWeather.relative_humidity} %` : '정보 없음'}
+						</Text>
 						<Text style={styles.infoText1}>습도</Text>
 					</View>
 					<View style={[styles.infoItemHorizontalWithFlex, styles.divider]}>
 						<Feather name="cloud-rain" size={24} color="white" />
-						<Text style={styles.infoText}>{currentWeather.precipitation !== null ? `${currentWeather.precipitation} mm` : '정보 없음'}</Text>
-						<Text style={styles.infoText1}>강수량</Text>
+						<Text style={styles.infoText}>
+        {currentWeather.precipitation !== null 
+            ? `${currentWeather.precipitation} mm` 
+            : estimatePrecipitationByDewPoint(
+                currentWeather.dew_point, 
+                currentWeather.relative_humidity, 
+                currentWeather.cloud_cover
+              )}
+    </Text>
+    <Text style={styles.infoText1}>강수량</Text>
 					</View>
 					<View style={styles.infoItemHorizontalWithFlex}>
 						<Feather name="wind" size={24} color="white" />

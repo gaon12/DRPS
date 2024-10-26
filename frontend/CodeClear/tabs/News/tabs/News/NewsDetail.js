@@ -35,9 +35,6 @@ const NewsDetail = () => {
     // TTS 설정 변경 감지
     useEffect(() => {
         console.log("현재 설정 값:", settings);
-        if (!settings.ttsOption?.language?.[settings.language]) {
-            console.warn(`지원되지 않는 언어입니다: ${settings.language}`);
-        }
     }, [settings]);
 
     // 화면 이탈 시 TTS 정지

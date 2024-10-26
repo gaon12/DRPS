@@ -6,19 +6,19 @@ export const SettingsContext = createContext();
 
 // Provider Component
 export const SettingsProvider = ({ children }) => {
-	const [settings, setSettings] = useState({
-		isDarkMode: false,
-		language: 'en',
-		notifications: true,
-		webviewUsage: true,
-		useOpenStreetMap: false,
-		selectedDisaster: '자연 재난',
-		location: { latitude: null, longitude: null }, // 위치 정보 추가
-		ttsOption: { language: {}, ttsService: '' }, // TTS 옵션 추가
-	});
+    const [settings, setSettings] = useState({
+        isDarkMode: false,
+        language: 'ko',
+        notifications: true,
+        webviewUsage: true,
+        useOpenStreetMap: false,
+        selectedDisaster: '자연 재난',
+        location: { latitude: null, longitude: null },
+        ttsOption: { language: {}, ttsService: '' },
+    });
 
-	// Function to load settings from SecureStore
-	const loadSettings = async () => {
+    // Function to load settings from SecureStore
+    const loadSettings = async () => {
 		try {
 			const savedDarkMode = await SecureStore.getItemAsync('Settings_DarkMode');
 			const savedLanguage = await SecureStore.getItemAsync('Settings_Language');
@@ -28,13 +28,17 @@ export const SettingsProvider = ({ children }) => {
 			const savedSelectedDisaster = await SecureStore.getItemAsync('Settings_SelectedDisaster');
 			const savedLatitude = await SecureStore.getItemAsync('Settings_Latitude');
 			const savedLongitude = await SecureStore.getItemAsync('Settings_Longitude');
+			const savedUseTTs = await SecureStore.getItemAsync('Settings_UseTTs');
 			const savedTTS = await SecureStore.getItemAsync('TTS_Settings');
-
-			const ttsOption = savedTTS ? JSON.parse(savedTTS) : { language: {}, ttsService: '' };
-
+	
+			// TTS 옵션이 없을 경우 기본 값으로 빈 객체 설정
+			const ttsOption = savedTTS 
+				? JSON.parse(savedTTS) 
+				: { language: {}, ttsService: '' };
+	
 			setSettings({
 				isDarkMode: savedDarkMode === 'Yes',
-				language: savedLanguage || 'en',
+				language: savedLanguage || 'ko',
 				notifications: savedNotifications === 'Yes',
 				webviewUsage: savedWebviewUsage === 'Yes',
 				useOpenStreetMap: savedUseOpenStreetMap === 'Yes',
@@ -43,66 +47,74 @@ export const SettingsProvider = ({ children }) => {
 					latitude: savedLatitude ? parseFloat(savedLatitude) : null,
 					longitude: savedLongitude ? parseFloat(savedLongitude) : null,
 				},
-				ttsOption, // TTS 옵션 설정
+				useTTs: savedUseTTs === 'Yes',
+				ttsOption,  // TTS 설정 반영
 			});
-
-			console.log('설정 로드 완료:', ttsOption);
+	
+			console.log('설정 로드 완료:', {
+				isDarkMode: savedDarkMode,
+				language: savedLanguage,
+				notifications: savedNotifications,
+				webviewUsage: savedWebviewUsage,
+				useOpenStreetMap: savedUseOpenStreetMap,
+				selectedDisaster: savedSelectedDisaster,
+				location: { latitude: savedLatitude, longitude: savedLongitude },
+				useTTs: savedUseTTs,
+				ttsOption,
+			});
 		} catch (error) {
-			console.error("Failed to load settings: ", error);
+			console.error('설정을 불러오는 중 오류가 발생했습니다:', error);
 		}
 	};
+	
 
-	// Function to save settings to SecureStore
-	const saveSetting = async (key, value) => {
-		try {
-			if (key === 'ttsOption') {
-				await SecureStore.setItemAsync('TTS_Settings', JSON.stringify(value));
-			} else {
-				await SecureStore.setItemAsync(key, value);
-			}
+    const saveSetting = async (key, value) => {
+        try {
+            if (key === 'ttsOption') {
+                await SecureStore.setItemAsync('TTS_Settings', JSON.stringify(value || {}));
+            } else {
+                const storedValue = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value);
+                await SecureStore.setItemAsync(`Settings_${key}`, storedValue);
+            }
 
-			setSettings((prevSettings) => ({
-				...prevSettings,
-				[key]: value,
-			}));
-		} catch (error) {
-			console.error("Failed to save setting: ", error);
-		}
-	};
+            setSettings((prevSettings) => ({
+                ...prevSettings,
+                [key]: value,
+            }));
+        } catch (error) {
+            console.error('Failed to save setting:', error);
+        }
+    };
 
-	// Function to update location
-	const updateLocation = async (latitude, longitude) => {
-		try {
-			await SecureStore.setItemAsync('Settings_Latitude', latitude.toString());
-			await SecureStore.setItemAsync('Settings_Longitude', longitude.toString());
+    const updateLocation = async (latitude, longitude) => {
+        try {
+            await SecureStore.setItemAsync('Settings_Latitude', latitude.toString());
+            await SecureStore.setItemAsync('Settings_Longitude', longitude.toString());
 
-			setSettings((prevSettings) => ({
-				...prevSettings,
-				location: { latitude, longitude },
-			}));
-		} catch (error) {
-			console.error("Failed to save location: ", error);
-		}
-	};
+            setSettings((prevSettings) => ({
+                ...prevSettings,
+                location: { latitude, longitude },
+            }));
+        } catch (error) {
+            console.error('Failed to save location:', error);
+        }
+    };
 
-	// Function to update settings like selectedDisaster
-	const updateSetting = (key, value) => {
-		saveSetting(key, value);
-	};
+    const updateSetting = (key, value) => {
+        saveSetting(key, value);
+    };
 
-	// settings 상태가 변경될 때마다 콘솔에 출력
-	useEffect(() => {
-		console.log('현재 설정 값:', settings);
-	}, [settings]); // settings가 변경될 때마다 실행
+    useEffect(() => {
+        console.log('현재 설정 값:', settings);
+    }, [settings]);
 
-	// Load settings on app start
-	useEffect(() => {
-		loadSettings();
-	}, []);
+    useEffect(() => {
+        loadSettings();
+    }, []);
 
-	return (
-		<SettingsContext.Provider value={{ settings, updateSetting, updateLocation }}>
-			{children}
-		</SettingsContext.Provider>
-	);
+    return (
+        <SettingsContext.Provider value={{ settings, updateSetting, updateLocation }}>
+            {children}
+        </SettingsContext.Provider>
+    );
 };
