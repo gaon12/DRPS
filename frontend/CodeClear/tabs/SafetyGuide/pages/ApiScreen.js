@@ -9,7 +9,8 @@ import * as Speech from 'expo-speech';
 
 const { width, height } = Dimensions.get('window');
 
-export default function App({ navigation }) {
+export default function App({ route, navigation }) {
+  const { disasterType, mappingId } = route.params || {}; // MainScreen에서 전달받은 재난 유형 및 mappingId
   const [pages, setPages] = useState([]);
   const [textContent, setTextContent] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,27 +26,35 @@ export default function App({ navigation }) {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
-    fetchPages();
-  }, []);
+    if (mappingId) {
+      fetchPages(mappingId); // 전달받은 mappingId로 API 호출
+    }
+  }, [mappingId]);
 
-  const fetchPages = async () => {
+  const fetchPages = async (id) => {
+    setIsLoading(true);
     try {
-      const response = await axios.get('https://apis.uiharu.dev/drps/NationalActionTips/api.php?category=naturaldisaster&id=01011&returnfile=webp');
+      // mappingId를 통해 API 호출
+      const response = await axios.get(`https://apis.uiharu.dev/drps/NationalActionTips/api.php?category=naturaldisaster&id=${id}&returnfile=webp`);
       const { data } = response.data;
-      
+
+      // 이미지 데이터를 base64 형식으로 가져옴
       const pageData = Object.entries(data)
         .filter(([key]) => key.startsWith('webp'))
         .sort(([a], [b]) => parseInt(a.slice(4)) - parseInt(b.slice(4)))
         .map(([_, value]) => `data:image/webp;base64,${value}`);
-      
+
+      // 텍스트 데이터 디코딩
       const decodedText = decodeURIComponent(escape(atob(data.text)));
-      
+
+      // 상태 업데이트
       setPages(pageData);
       setTotalPages(pageData.length);
       setTextContent(decodedText);
-      setIsLoading(false);
     } catch (error) {
       console.error('Error fetching pages:', error);
+      alert('데이터를 불러오는 중 오류가 발생했습니다.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -55,14 +64,8 @@ export default function App({ navigation }) {
       const result = await Share.share({
         message: textContent,
       });
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          console.log('shared with activity type of', result.activityType);
-        } else {
-          console.log('shared');
-        }
-      } else if (result.action === Share.dismissedAction) {
-        console.log('dismissed');
+      if (result.action === Share.sharedAction && result.activityType) {
+        console.log('shared with activity type of', result.activityType);
       }
     } catch (error) {
       alert(error.message);
@@ -82,7 +85,6 @@ export default function App({ navigation }) {
     }
   };
 
-  // 썸네일 뷰에서 페이지 뷰로 전환
   const handlePagePress = (index) => {
     setCurrentPage(index + 1);
     setIsPageViewMode(true);
@@ -94,7 +96,6 @@ export default function App({ navigation }) {
     }, 0);
   };
 
-  // 슬라이드 이미지 뷰에서 썸네일 뷰로 복귀
   const handleBackToThumbnails = () => {
     setIsPageViewMode(false);
     setTimeout(() => {
@@ -141,7 +142,7 @@ export default function App({ navigation }) {
             onGestureEvent={handlePinchGesture}
             onHandlerStateChange={handlePinchGesture}
           >
-            <ScrollView 
+            <ScrollView
               style={styles.pageContainer}
               contentContainerStyle={styles.pageContentContainer}
               maximumZoomScale={3}
@@ -158,7 +159,6 @@ export default function App({ navigation }) {
         ))}
       </ScrollView>
 
-      {/* 하단에 뒤로가기 버튼 UI 개선 */}
       <TouchableOpacity style={styles.backButton} onPress={handleBackToThumbnails}>
         <MaterialIcons name="arrow-back" size={16} color="white" />
         <Text style={styles.backButtonText}>뒤로 가기</Text>
@@ -175,11 +175,7 @@ export default function App({ navigation }) {
     >
       {pages.map((page, index) => (
         <TouchableOpacity key={index} onPress={() => handlePagePress(index)} style={styles.thumbnailButton}>
-          <Image
-            source={{ uri: page }}
-            style={styles.thumbnailImage}
-            resizeMode="contain"
-          />
+          <Image source={{ uri: page }} style={styles.thumbnailImage} resizeMode="contain" />
         </TouchableOpacity>
       ))}
     </ScrollView>
@@ -245,9 +241,7 @@ export default function App({ navigation }) {
             )}
           </View>
 
-          {activeTab === 'image' ? (
-            isPageViewMode ? renderPageView() : renderScrollView()
-          ) : (
+          {activeTab === 'image' ? (isPageViewMode ? renderPageView() : renderScrollView()) : (
             <View style={{ flex: 1 }}>
               <ScrollView contentContainerStyle={styles.textContainer}>
                 <Markdown style={markdownStyles}>{textContent}</Markdown>
@@ -260,19 +254,12 @@ export default function App({ navigation }) {
               <Text style={styles.modalTitle}>Go to Page</Text>
               <ScrollView style={styles.pageButtonContainer}>
                 {pages.map((_, index) => (
-                  <Button
-                    key={index}
-                    mode="outlined"
-                    onPress={() => goToPage(index + 1)}
-                    style={styles.pageButton}
-                  >
+                  <Button key={index} mode="outlined" onPress={() => goToPage(index + 1)} style={styles.pageButton}>
                     Page {index + 1}
                   </Button>
                 ))}
               </ScrollView>
-              <Button mode="contained" onPress={() => setModalVisible(false)} style={styles.closeButton}>
-                Close
-              </Button>
+              <Button mode="contained" onPress={() => setModalVisible(false)} style={styles.closeButton}>Close</Button>
             </Modal>
           </Portal>
         </View>
@@ -280,6 +267,7 @@ export default function App({ navigation }) {
     </PaperProvider>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
