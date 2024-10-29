@@ -6,35 +6,35 @@ const MainScreen = ({ navigation }) => {
   const [showList, setShowList] = useState(false); // 전체보기 리스트 표시 여부
   const [showModal, setShowModal] = useState(false); // 모달 표시 상태
   const [searchText, setSearchText] = useState('');
-  
   const [selectedDisasters, setSelectedDisasters] = useState({
     bigButton1: '태풍',
     bigButton2: '호우',
     bigButton3: '폭염',
     bigButton4: '한파',
   });
-
   const [activeDisasters, setActiveDisasters] = useState(['태풍', '호우', '폭염', '한파']);
 
+  // 재난 정보와 매핑되는 ID 리스트
   const modalDataList = [
-    { id: '1', title: '침수', icon: 'home-flood', iconType: 'MaterialCommunityIcons' },
-    { id: '2', title: '태풍', icon: 'weather-hurricane', iconType: 'MaterialCommunityIcons' },
-    { id: '3', title: '호우', icon: 'rainy-outline', iconType: 'Ionicons' },
-    { id: '4', title: '낙뢰', icon: 'thunderstorm-outline', iconType: 'Ionicons' },
-    { id: '5', title: '강풍', icon: 'weather-windy', iconType: 'MaterialCommunityIcons' },
-    { id: '6', title: '풍랑', icon: 'waves', iconType: 'MaterialCommunityIcons' },
-    { id: '7', title: '대설', icon: 'weather-snowy-heavy', iconType: 'MaterialCommunityIcons' },
-    { id: '8', title: '한파', icon: 'snow', iconType: 'Ionicons' },
-    { id: '9', title: '폭염', icon: 'sunny-outline', iconType: 'Ionicons' },
-    { id: '10', title: '황사', icon: 'partly-sunny-outline', iconType: 'Ionicons' },
-    { id: '11', title: '지진', icon: 'house-damage', iconType: 'FontAwesome5' },
-    { id: '12', title: '해일', icon: 'water', iconType: 'Ionicons' },
-    { id: '13', title: '지진해일', icon: 'water', iconType: 'Ionicons' },
-    { id: '14', title: '화산폭발', icon: 'flame', iconType: 'Ionicons' },
-    { id: '15', title: '가뭄', icon: 'sunny', iconType: 'Ionicons' },
-    { id: '16', title: '홍수', icon: 'water', iconType: 'Ionicons' },
-    { id: '17', title: '조수', icon: 'waves', iconType: 'Ionicons' },
-    { id: '18', title: '산사태', icon: 'terrain', iconType: 'Ionicons' },
+    { id: '1', mappingId: '01001', title: '태풍', icon: 'weather-hurricane', iconType: 'MaterialCommunityIcons' },
+    { id: '2', mappingId: '01002', title: '홍수', icon: 'water', iconType: 'Ionicons' },
+    { id: '3', mappingId: '01003', title: '호우', icon: 'rainy-outline', iconType: 'Ionicons' },
+    { id: '4', mappingId: '01004', title: '강풍', icon: 'weather-windy', iconType: 'MaterialCommunityIcons' },
+    { id: '5', mappingId: '01005', title: '대설', icon: 'weather-snowy-heavy', iconType: 'MaterialCommunityIcons' },
+    { id: '6', mappingId: '01006', title: '한파', icon: 'snow', iconType: 'Ionicons' },
+    { id: '7', mappingId: '01007', title: '풍랑', icon: 'waves', iconType: 'MaterialCommunityIcons' },
+    { id: '8', mappingId: '01008', title: '황사', icon: 'weather-dust', iconType: 'MaterialCommunityIcons' },
+    { id: '9', mappingId: '01009', title: '폭염', icon: 'sunny-outline', iconType: 'Ionicons' },
+    { id: '10', mappingId: '01010', title: '가뭄', icon: 'sunny', iconType: 'Ionicons' },
+    { id: '11', mappingId: '01011', title: '지진', icon: 'earthquake', iconType: 'MaterialCommunityIcons' },
+    { id: '12', mappingId: '01012', title: '지진해일', icon: 'water', iconType: 'Ionicons' },
+    { id: '13', mappingId: '01013', title: '해일', icon: 'water', iconType: 'Ionicons' },
+    { id: '14', mappingId: '01014', title: '산사태', icon: 'terrain', iconType: 'MaterialCommunityIcons' },
+    { id: '15', mappingId: '01015', title: '화산폭발', icon: 'volcano', iconType: 'MaterialCommunityIcons' },
+    { id: '16', mappingId: '01016', title: '침수', icon: 'home-flood', iconType: 'MaterialCommunityIcons' },
+    { id: '17', mappingId: '01017', title: '낙뢰', icon: 'thunderstorm-outline', iconType: 'Ionicons' },
+
+    { id: '18', title: '산사태', icon: 'water', iconType: 'Ionicons' },
     { id: '19', title: '자연우주물체추락', icon: 'planet', iconType: 'Ionicons' },
     { id: '20', title: '우주전파재난', icon: 'radio', iconType: 'Ionicons' },
     { id: '21', title: '조류대발생(녹조)', icon: 'leaf', iconType: 'Ionicons' },
@@ -43,7 +43,7 @@ const MainScreen = ({ navigation }) => {
 
   const allDisastersList = modalDataList.map(({ id, title }) => ({ id, title }));
 
-  // 아이콘 컴포넌트 동적으로 가져오기
+  // 아이콘 컴포넌트를 동적으로 가져오는 함수
   const getIconComponent = (iconType, iconName, size = 35, color = 'black', style = {}) => {
     if (iconType === 'Ionicons') {
       return <Ionicons name={iconName} size={size} color={color} style={style} />;
@@ -59,13 +59,33 @@ const MainScreen = ({ navigation }) => {
     }
   };
 
-  // 선택된 재난 항목 클릭 시 ApiScreen으로 네비게이션
-  const handleItemPress = (title) => {
-    navigation.navigate('ApiScreen', { disasterType: title });
+  // 재난의 선택 상태를 관리
+  const handleDisasterSelection = (title) => {
+    const updatedDisasters = { ...selectedDisasters };
+    if (Object.values(updatedDisasters).includes(title)) {
+      for (let key in updatedDisasters) {
+        if (updatedDisasters[key] === title) {
+          updatedDisasters[key] = '';
+        }
+      }
+    } else {
+      for (let key in updatedDisasters) {
+        if (!updatedDisasters[key]) {
+          updatedDisasters[key] = title;
+          break;
+        }
+      }
+    }
+    setSelectedDisasters(updatedDisasters);
+    setActiveDisasters(Object.values(updatedDisasters).filter(item => item));
   };
 
-  const getSelectedItemIndex = (title) => {
-    return activeDisasters.indexOf(title) + 1; // 인덱스는 0부터 시작하므로 +1
+  // ApiScreen으로 이동하면서 mappingId 전달하는 함수
+  const handleItemPress = (title) => {
+    const selectedDisaster = modalDataList.find((item) => item.title === title);
+    if (selectedDisaster) {
+      navigation.navigate('ApiScreen', { mappingId: selectedDisaster.mappingId });
+    }
   };
 
   const getButtonStyle = (title) => {
@@ -83,18 +103,17 @@ const MainScreen = ({ navigation }) => {
         />
         <MaterialIcons name="search" size={24} color="black" style={styles.searchIcon} />
       </View>
-  
+
       <TouchableOpacity style={styles.settingsButton} onPress={() => setShowModal(true)}>
         <Ionicons name="settings-sharp" size={24} color="black" />
         <Text style={styles.settingsButtonText}>재난 설정</Text>
       </TouchableOpacity>
-  
+
       <View style={styles.buttonRow}>
         <TouchableOpacity
           style={[styles.bigButton, getButtonStyle(selectedDisasters.bigButton1)]}
           onPress={() => handleItemPress(selectedDisasters.bigButton1)}
         >
-          {/* 태풍에 맞는 아이콘을 modalDataList에서 가져오기 */}
           {getIconComponent(
             modalDataList.find(item => item.title === selectedDisasters.bigButton1)?.iconType || 'MaterialCommunityIcons',
             modalDataList.find(item => item.title === selectedDisasters.bigButton1)?.icon || 'cloud',
@@ -102,6 +121,7 @@ const MainScreen = ({ navigation }) => {
           )}
           <Text style={styles.buttonText}>{selectedDisasters.bigButton1}</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.bigButton, getButtonStyle(selectedDisasters.bigButton2)]}
           onPress={() => handleItemPress(selectedDisasters.bigButton2)}
@@ -114,7 +134,7 @@ const MainScreen = ({ navigation }) => {
           <Text style={styles.buttonText}>{selectedDisasters.bigButton2}</Text>
         </TouchableOpacity>
       </View>
-  
+
       <View style={styles.buttonRow}>
         <TouchableOpacity
           style={[styles.bigButton, getButtonStyle(selectedDisasters.bigButton3)]}
@@ -127,6 +147,7 @@ const MainScreen = ({ navigation }) => {
           )}
           <Text style={styles.buttonText}>{selectedDisasters.bigButton3}</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.bigButton, getButtonStyle(selectedDisasters.bigButton4)]}
           onPress={() => handleItemPress(selectedDisasters.bigButton4)}
@@ -139,13 +160,12 @@ const MainScreen = ({ navigation }) => {
           <Text style={styles.buttonText}>{selectedDisasters.bigButton4}</Text>
         </TouchableOpacity>
       </View>
-  
+
       <TouchableOpacity style={styles.showAllButton} onPress={() => setShowList(!showList)}>
         <Text style={styles.showAllButtonText}>전체보기</Text>
       </TouchableOpacity>
     </>
   );
-  
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -175,12 +195,12 @@ const MainScreen = ({ navigation }) => {
                     <TouchableOpacity
                       key={item.id}
                       style={[styles.iconButton, getButtonStyle(item.title)]}
-                      onPress={() => handleItemPress(item.title)}
+                      onPress={() => handleDisasterSelection(item.title)}
                     >
                       {getIconComponent(item.iconType, item.icon)}
                       <Text style={styles.iconText}>{item.title}</Text>
                       {activeDisasters.includes(item.title) && (
-                        <Text style={styles.positionIndicator}>{getSelectedItemIndex(item.title)}</Text>
+                        <Text style={styles.positionIndicator}>{activeDisasters.indexOf(item.title) + 1}</Text>
                       )}
                     </TouchableOpacity>
                   ))}
@@ -245,6 +265,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     borderRadius: 10,
     position: 'relative',
+    width: 130,
+    height: 130,
   },
   buttonIcon: {
     position: 'absolute',
