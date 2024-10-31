@@ -246,6 +246,12 @@ const SettingsScreen = () => {
 						onPress={handleReset}
 						titleStyle={isDarkMode ? styles.darkText : styles.lightText}
 					/>
+					<List.Item
+						title="Report A Disaster"
+						left={() => <IconButton icon="cellphone" color={iconColor} />}
+						onPress={() => navigation.navigate('CallScreen')}
+						titleStyle={isDarkMode ? styles.darkText : styles.lightText}
+					/>
 				</List.Section>
 			</ScrollView>
 			<Toast />

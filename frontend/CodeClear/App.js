@@ -7,6 +7,7 @@ import Tabs from './tabs';
 import { Provider as PaperProvider } from 'react-native-paper';
 import VersionInfo from './tabs/Settings/pages/VersionInfo';
 import LabsScreen from './tabs/Settings/pages/Labs/index';
+import CallScreen from './tabs/Settings/pages/Emergency/page';
 import NewsDetail from './tabs/News/tabs/News/NewsDetail';
 import ContributorList from './tabs/Settings/pages/VersionInfo/ContributorList';
 import PatchNotes from './tabs/Settings/pages/VersionInfo/PatchNotes';
@@ -87,6 +88,12 @@ const App = () => {
 							name="LabsScreen"
 							component={LabsScreen}
 							options={{ title: 'Labs Screen' }} // 상단 타이틀 설정
+						/>
+						{/* 재난 신고 화면 */}
+						<Stack.Screen
+							name="CallScreen"
+							component={CallScreen}
+							options={{ title: 'Calls Screen' }} // 상단 타이틀 설정
 						/>
 						{/* 버전 정보 화면 */}
 						<Stack.Screen
