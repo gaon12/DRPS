@@ -36,6 +36,7 @@ const App = () => {
     const [bannerSize, setBannerSize] = useState(getBannerSize()); 
     const scrollViewRef = useRef(null);
     const slideInterval = useRef(null);
+    const navigation = useNavigation();
     const deviceType = getDeviceType();
     const { settings, updateLocation } = useContext(SettingsContext); // Use Context
     const [city, setCity] = useState('현재 위치를 알 수 없거나 도외입니다'); // 위치 정보를 표시할 상태
@@ -212,17 +213,22 @@ const App = () => {
                     <Text style={styles.cardText}>비상 재난</Text>
                 </TouchableOpacity>
             </ScrollView>
-
-            <Text style={[styles.sectionTitle, { paddingTop: 20 }]}>평소에 대비하기</Text>
-            <View style={styles.grid}>
+            <Text style={styles.sectionTitle}>평소에 대비하기</Text>
+            <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false} 
+                contentContainerStyle={styles.gridHorizontal}
+            >  
                 <TouchableOpacity style={styles.card}>
                     <Text style={styles.cardText}>체크 리스트</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.card}>
                     <Text style={styles.cardText}>피난 시뮬레이션</Text>
                 </TouchableOpacity>
-            </View>
-
+                <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('CallScreen')} >
+                    <Text style={styles.cardText}>재난 신고하기</Text>
+                </TouchableOpacity>
+            </ScrollView>
             <Text style={styles.sectionTitle}>기타</Text>
             <ScrollView 
                 horizontal 
