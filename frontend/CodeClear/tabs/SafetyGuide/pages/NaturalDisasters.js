@@ -84,9 +84,10 @@ const MainScreen = ({ navigation }) => {
   const handleItemPress = (title) => {
     const selectedDisaster = modalDataList.find((item) => item.title === title);
     if (selectedDisaster) {
-      navigation.navigate('ApiScreen', { mappingId: selectedDisaster.mappingId });
+      navigation.navigate('ApiScreen', { mappingId: selectedDisaster.mappingId, category: 'naturaldisaster' });
     }
   };
+
 
   const getButtonStyle = (title) => {
     return activeDisasters.includes(title) ? { backgroundColor: '#B0E0E6' } : { backgroundColor: '#f0f0f0' };
