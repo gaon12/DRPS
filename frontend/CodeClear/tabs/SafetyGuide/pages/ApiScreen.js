@@ -1,17 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { View, Image, ScrollView, Dimensions, StyleSheet, TouchableOpacity, Text, Share } from 'react-native';
 import { Provider as PaperProvider, Modal, Portal, Button, ProgressBar } from 'react-native-paper';
 import axios from 'axios';
 import { PinchGestureHandler, GestureHandlerRootView } from 'react-native-gesture-handler';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Markdown from 'react-native-markdown-display';
-import * as Speech from 'expo-speech';
+import { handleTTS, stopTTS } from '../../News/tabs/News/hooks/handleTTS';
+import { SettingsContext } from '../../../Context';
 import { handleSummary } from '../../News/tabs/News/hooks/handleSummary';
 
 const { width, height } = Dimensions.get('window');
 
-export default function App({ route, navigation }) {
-  const { disasterType, mappingId } = route.params || {};
+export default function ApiScreen({ route, navigation }) {
+  const { disasterType, mappingId, category } = route.params || {};
+  const { settings } = useContext(SettingsContext);
   const [pages, setPages] = useState([]);
   const [textContent, setTextContent] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -19,9 +21,9 @@ export default function App({ route, navigation }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isPageViewMode, setIsPageViewMode] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [summaryModalVisible, setSummaryModalVisible] = useState(false); // Summary Modal 상태 추가
-  const [summaryText, setSummaryText] = useState([]); // 요약 텍스트 상태 추가
-  const [currentSummary, setCurrentSummary] = useState(0); // 현재 요약 인덱스
+  const [summaryModalVisible, setSummaryModalVisible] = useState(false);
+  const [summaryText, setSummaryText] = useState([]);
+  const [currentSummary, setCurrentSummary] = useState(0);
   const [scale, setScale] = useState(1);
   const scrollViewRef = useRef(null);
   const pageViewRef = useRef(null);
@@ -38,7 +40,7 @@ export default function App({ route, navigation }) {
   const fetchPages = async (id) => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`https://apis.uiharu.dev/drps/NationalActionTips/api.php?category=naturaldisaster&id=${id}&returnfile=webp`);
+      const response = await axios.get(`https://apis.uiharu.dev/drps/NationalActionTips/api.php?category=${category}&id=${id}&returnfile=webp`);
       const { data } = response.data;
 
       const pageData = Object.entries(data)
@@ -72,16 +74,12 @@ export default function App({ route, navigation }) {
     }
   };
 
-  const handleTTS = async () => {
-    if (isSpeaking) {
-      await Speech.stop();
-      setIsSpeaking(false);
-    } else {
-      setIsSpeaking(true);
-      Speech.speak(textContent, {
-        onDone: () => setIsSpeaking(false),
-        onError: () => setIsSpeaking(false),
-      });
+  const handleTTSPress = async () => {
+    try {
+      await handleTTS(isSpeaking, setIsSpeaking, { formattedContent: [{ text: textContent }] }, settings);
+    } catch (error) {
+      console.error("TTS 처리 중 오류:", error);
+      alert("TTS 처리 중 오류가 발생했습니다.");
     }
   };
 
@@ -90,25 +88,23 @@ export default function App({ route, navigation }) {
     try {
       const summaries = await handleSummary({ formattedContent: [{ text: textContent, type: "text" }] });
       
-      // 모든 요약 항목을 하나의 텍스트 블록으로 합친 후 포맷 조정
       const formattedText = summaries.join("\n")
-        .replace(/- -/g, '-')               // '- -'를 '-'로 변환
-        .replace(/\. - /g, '.\n')           // '. - ' 패턴을 '.'로 변환 후 줄바꿈 추가
-        .replace(/\n/g, '\n\n');            // 문장 간 줄바꿈 추가
+        .replace(/- -/g, '-')
+        .replace(/\. - /g, '.\n')
+        .replace(/\n/g, '\n\n');
       
-      // 최종 포맷팅된 텍스트를 배열에 다시 담아 렌더링
       const formattedSummaries = [formattedText];
       
-      setSummaryText(formattedSummaries);   // 포맷팅된 요약 텍스트 저장
-      setCurrentSummary(0);                 // 요약 인덱스 초기화
-      setSummaryModalVisible(true);         // 요약 모달 표시
+      setSummaryText(formattedSummaries);
+      setCurrentSummary(0);
+      setSummaryModalVisible(true);
     } catch (error) {
       console.error("요약 처리 중 오류:", error);
       setSummaryText(["요약에 실패했습니다. 다시 시도해주세요."]);
       setSummaryModalVisible(true);
     }
   };
-  
+
   const renderPageView = () => (
     <View style={{ flex: 1 }}>
       <ScrollView
@@ -116,8 +112,6 @@ export default function App({ route, navigation }) {
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
         style={styles.pageViewScrollContainer}
       >
         {pages.map((page, index) => (
@@ -215,7 +209,7 @@ export default function App({ route, navigation }) {
                 <TouchableOpacity style={styles.iconButton} onPress={handleShare}>
                   <MaterialIcons name="share" size={24} color={isDarkMode ? "#fff" : "black"} />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.iconButton} onPress={handleTTS}>
+                <TouchableOpacity style={styles.iconButton} onPress={handleTTSPress}>
                   <MaterialIcons name={isSpeaking ? "volume-off" : "volume-up"} size={24} color={isDarkMode ? "#fff" : "black"} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.iconButton} onPress={showSummary}>
@@ -246,7 +240,6 @@ export default function App({ route, navigation }) {
               <Button mode="contained" onPress={() => setModalVisible(false)} style={styles.closeButton}>Close</Button>
             </Modal>
 
-            {/* 요약 결과를 표시하는 모달 */}
             <Modal visible={summaryModalVisible} onDismiss={() => setSummaryModalVisible(false)} contentContainerStyle={styles.modalContent}>
               <Text style={styles.modalTitle}>요약 결과</Text>
               <ScrollView style={styles.summaryContainer}>
@@ -254,12 +247,8 @@ export default function App({ route, navigation }) {
                   {summaryText[currentSummary] ? summaryText[currentSummary].replace(/\.\s*--/g, '.\n--') : '요약이 없습니다.'}
                 </Markdown>
               </ScrollView>
-              {/* {summaryText.length > 1 && (
-                <Button onPress={onNextSummary} style={styles.nextButton}>다른 요약 보기</Button>
-              )} */}
               <Button onPress={() => setSummaryModalVisible(false)} style={styles.closeButton}>닫기</Button>
             </Modal>
-
           </Portal>
         </View>
       </GestureHandlerRootView>
