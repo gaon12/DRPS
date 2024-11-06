@@ -28,6 +28,7 @@ import LocalDisasters from './tabs/SafetyGuide/CList/LocalDisasters';
 import EvacMain from './tabs/SafetyGuide/EvacSimulator/EvacMain'
 import EvacwithAddress from './tabs/SafetyGuide/EvacSimulator/EvacwithAddress'
 import EvacwithMap from './tabs/SafetyGuide/EvacSimulator/EvacwithMap'
+import ExamplePage from './tabs/SafetyGuide/CList/ExamplePage'
 import { SettingsProvider } from './Context';
 
 const Stack = createStackNavigator();
@@ -152,6 +153,8 @@ const App = () => {
 						{/* 피난시뮬레이션 관련 */}
 						<Stack.Screen name="EvacwithAddress" component={EvacwithAddress} />
 						<Stack.Screen name="EvacwithMap" component={EvacwithMap} />
+
+						<Stack.Screen name="ExamplePage" component={ExamplePage} />
 
 					</Stack.Navigator>
 				</NavigationContainer>
