@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, Text, SafeAreaView } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Markdown from 'react-native-markdown-display';
 
-const App = () => {
+const ExamplePage = () => {
   const [markdownContent, setMarkdownContent] = useState('');
 
   // YouTube 임베드를 위한 HTML 컨텐츠
@@ -33,7 +33,7 @@ const App = () => {
       <body>
         <div class="video-container">
           <iframe 
-            src="https://www.youtube.com/embed/DxAQi6wyeeY?playsinline=1"
+            src="https://www.youtube.com/embed/LJJFIX1y1Mw?playsinline=1"
             frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen>
@@ -44,7 +44,7 @@ const App = () => {
   `;
 
   useEffect(() => {
-    fetch('https://raw.githubusercontent.com/gaon12/DRPS/refs/heads/main/README.md')
+    fetch('https://apis.uiharu.dev/drps/test/a.md')
       .then(response => response.text())
       .then(text => setMarkdownContent(text))
       .catch(error => console.error(error));
@@ -68,7 +68,7 @@ const App = () => {
           />
         </View>
         <View style={styles.markdownContainer}>
-          <Text style={styles.sectionTitle}>Markdown Content:</Text>
+          <Text style={styles.sectionTitle}></Text>
           <Markdown>{markdownContent}</Markdown>
         </View>
       </ScrollView>
@@ -120,4 +120,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default ExamplePage;

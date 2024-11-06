@@ -31,7 +31,7 @@ const MainScreen = ({ navigation }) => {
     { id: '13', mappingId: '01013', title: '해일', icon: 'water', iconType: 'Ionicons' },
     { id: '14', mappingId: '01014', title: '산사태', icon: 'terrain', iconType: 'MaterialCommunityIcons' },
     { id: '15', mappingId: '01015', title: '화산폭발', icon: 'volcano', iconType: 'MaterialCommunityIcons' },
-    { id: '16', mappingId: '01016', title: '침수', icon: 'home-flood', iconType: 'MaterialCommunityIcons' },
+    { id: '16', mappingId: '01016', title: '침수', icon: 'flood', iconType: 'MaterialIcons' },
     { id: '17', mappingId: '01017', title: '낙뢰', icon: 'thunderstorm-outline', iconType: 'Ionicons' },
 
     { id: '18', title: '산사태', icon: 'water', iconType: 'Ionicons' },

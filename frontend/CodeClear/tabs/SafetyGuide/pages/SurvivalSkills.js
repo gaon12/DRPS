@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
-// LayoutAnimation을 활성화 (안드로이드에서)
+// LayoutAnimation 활성화 (안드로이드에서)
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const MyCustomCard = ({ id, title, description, expanded, onPress }) => (
+const MyCustomCard = ({ id, title, description, expanded, onPress, onNavigate, imageSource }) => (
   <View style={styles.cardWrapper}>
     <TouchableOpacity onPress={() => onPress(id)} style={styles.card}>
-      {/* 이미지를 다시 사용 */}
-      <Image style={styles.cardImage} source={{ uri: 'https://picsum.photos/700' }} />
+      <Image style={styles.cardImage} source={imageSource} />
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>{title}</Text>
         {expanded && (
           <>
             <Text style={styles.cardDescription}>{description}</Text>
-            <TouchableOpacity style={styles.button}>
-              <Text style={styles.buttonText}>Action</Text>
+            <TouchableOpacity style={styles.button} onPress={onNavigate}>
+              <Text style={styles.buttonText}>바로가기</Text>
             </TouchableOpacity>
           </>
         )}
@@ -28,23 +28,26 @@ const MyCustomCard = ({ id, title, description, expanded, onPress }) => (
 
 const MyCardGrid = () => {
   const [expandedCard, setExpandedCard] = useState(null);
+  const navigation = useNavigation();
 
   const handleCardPress = (id) => {
-    // 애니메이션 시작
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedCard(expandedCard === id ? null : id);
   };
 
-  // 카드 제목과 설명을 배열로 설정
+  const handleNavigate = () => {
+    navigation.navigate('ExamplePage');
+  };
+
   const cardData = [
-    { title: '매듭법', description: 'This is description for card 1.' },
-    { title: '식수 확보', description: 'This is description for card 2.' },
-    { title: '불 피우기', description: 'This is description for card 3.' },
-    { title: '응급 처치', description: 'This is description for card 4.' },
-    { title: '방향 찾기', description: 'This is description for card 5.' },
-    { title: '식품 보관', description: 'This is description for card 6.' },
-    { title: '대피소 제작', description: 'This is description for card 7.' },
-    { title: '~', description: 'This is description for card 8.' },
+    { title: '매듭법', description: 'This is description for card 1.', image: require('./icon_pic/SurvivalSkills/rope.webp') },
+    { title: '식수 확보', description: 'This is description for card 2.', image: require('./icon_pic/SurvivalSkills/water.webp') },
+    { title: '불 피우기', description: 'This is description for card 3.', image: require('./icon_pic/SurvivalSkills/fire.webp') },
+    { title: '응급 처치', description: 'This is description for card 4.', image: require('./icon_pic/SurvivalSkills/emergencybag.webp') },
+    { title: '방향 찾기', description: 'This is description for card 5.', image: require('./icon_pic/SurvivalSkills/direction.webp') },
+    { title: '식품 보관', description: 'This is description for card 6.', image: require('./icon_pic/SurvivalSkills/food.webp') },
+    { title: '대피소 제작', description: 'This is description for card 7.', image: require('./icon_pic/SurvivalSkills/shelter.webp') },
+    { title: '구조 신호', description: 'This is description for card 8.', image: require('./icon_pic/SurvivalSkills/sos.webp') },
   ];
 
   const renderCards = () => {
@@ -56,6 +59,8 @@ const MyCardGrid = () => {
         description={card.description}
         expanded={expandedCard === index}
         onPress={handleCardPress}
+        onNavigate={handleNavigate}
+        imageSource={card.image}
       />
     ));
   };
