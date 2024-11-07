@@ -1,10 +1,12 @@
 // tabs/News/tabs/Weather/index.js
 
 import React, { useEffect, useState } from 'react';
+import { Portal } from 'react-native-paper';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, Image } from 'react-native';
 import axios from 'axios';
 import { Feather } from '@expo/vector-icons';
 import * as Location from 'expo-location';
+import Toast from 'react-native-toast-message';
 import SunCalc from 'suncalc';
 
 const WeatherScreen = () => {
@@ -200,6 +202,34 @@ const WeatherScreen = () => {
 		}
 	};
 
+	//대기질 아이템 함수
+	const AirQualityItem = ({ parameter, value, status, fill, color }) => {
+		const isPm10OrNh3 = parameter === 'pm10' || parameter === 'nh3';
+		return (
+			<View
+				style={[
+					styles.airQualityGridItem,
+					isPm10OrNh3 && { width: '45%' } // pm10과 nh3만 절반 이상의 너비 차지
+				]}
+			>
+				<Text style={styles.airQualityParameter}>{parameter}</Text>
+				<Text style={styles.airQualityValue}>{value} µg/m³</Text>
+				<View style={styles.gaugeContainer}>
+					<View
+						style={[
+							styles.gaugeFill,
+							{
+								width: `${fill}%`,
+								backgroundColor: color,
+							},
+						]}
+					/>
+				</View>
+				<Text style={styles.airQualityStatus}>{status}</Text>
+			</View>
+		);
+	};
+
 	// 대기질 상태를 평가하는 함수
 	const getAirQualityStatus = (parameter, value) => {
 		if (value === null || value === undefined || isNaN(value)) {
@@ -261,20 +291,28 @@ const WeatherScreen = () => {
 		console.log('Long press event triggered');
 		const newStandard = standards === 'WHO' ? 'Korean Ministry' : 'WHO';
 		setStandards(newStandard);
-		Alert.alert(
-			'기준 변경',
-			`기준이 ${newStandard}로 변경되었습니다.`,
-			[{ text: '확인', onPress: () => console.log('Alert closed') }]
-		);
+
+		// Toast로 알림 표시
+		Toast.show({
+			type: 'success',
+			text1: '기준 변경',
+			text2: `기준이 ${newStandard}로 변경되었습니다.`,
+			position: 'top',
+		});
 	};
 
 	// 업체 변경 함수
-	const handleProviderChange = async () => {
+	const handleProviderChange = async (latitude, longitude) => {
 		try {
 			setUseOpenWeatherIcon((prev) => !prev);
-
+			Toast.show({
+				type: 'success',
+				text1: 'Provider Changed',
+				text2: 'Weather data provider has been changed.',
+				position: 'top',
+			});
 			if (!useOpenWeatherIcon) {
-				const response = await axios.get(`https://apis.uiharu.dev/drps/weather/current.php?latitude=36.3385052&longitude=127.4496393`);
+				const response = await axios.get(`https://apis.uiharu.dev/drps/weather/current.php?latitude=${latitude}&longitude=${longitude}`);
 
 				if (response.data.StatusCode === 200) {
 					const data = response.data.data;
@@ -310,14 +348,19 @@ const WeatherScreen = () => {
 			}
 		} catch (error) {
 			console.error('Failed to fetch data from new provider:', error);
-			Alert.alert('Error', 'Failed to fetch weather data.');
+			Toast.show({
+				type: 'error',
+				text1: 'Error',
+				text2: 'Failed to change provider.',
+				position: 'top',
+			});
 		}
 	};
 
 	//업체 변경날씨 아이콘 함수
 	const getOpenWeatherIcon = (icon) => {
 		const iconUrl = `https://openweathermap.org/img/wn/${icon}@2x.png`;
-		return <Image source={{ uri: iconUrl }} style={{ width: 40, height: 40 }} />;
+		return <Image source={{ uri: iconUrl }} style={{ width: 58, height: 58 }} />;
 	};
 
 	// 이슬점 계산 함수
@@ -411,9 +454,7 @@ const WeatherScreen = () => {
 					</View>
 				</View>
 			</View>
-
 			{/* Hourly Forecast */}
-
 			<View style={styles.roundedContainer}>
 				<Text style={styles.sectionTitle}>Hourly Forecast</Text>
 				<ScrollView horizontal>
@@ -425,16 +466,11 @@ const WeatherScreen = () => {
 						</View>
 					))}
 				</ScrollView>
-				<TouchableOpacity onPress={handleLongPress} style={styles.button}>
-					<Text style={styles.buttonText}>기준 변경</Text>
-				</TouchableOpacity>
 				<TouchableOpacity onPress={handleProviderChange} style={styles.button}>
-					<Text style={styles.buttonText}>업체 변경</Text>
+					<Text style={styles.buttonText}>온도 기준 변경</Text>
 				</TouchableOpacity>
 				<View style={styles.airQualityContainer}>
-
 					{/* Air Quality Information */}
-
 					<Text style={styles.sectionTitle}>Air Quality</Text>
 					<View style={styles.gridContainer}>
 						{Array.isArray(airQuality) && airQuality.length > 0 ? (
@@ -450,45 +486,35 @@ const WeatherScreen = () => {
 								}
 
 								return (
-									<View key={index} style={styles.airQualityGridItem}>
-										<Text style={styles.airQualityParameter}>{item.parameter}</Text>
-										<Text style={styles.airQualityValue}>{item.value} µg/m³</Text>
-										<View style={styles.gaugeContainer}>
-											<View
-												style={[
-													styles.gaugeFill,
-													{
-														width: `${fill}%`,
-														backgroundColor: color,
-													},
-												]}
-											/>
-										</View>
-										<Text style={styles.airQualityStatus}>{status}</Text>
-									</View>
+									<AirQualityItem
+										key={index}
+										parameter={item.parameter}
+										value={item.value}
+										status={status}
+										fill={fill}
+										color={color}
+									/>
 								);
 							})
 						) : (
-							// 데이터를 못받았을 경우 기본 상태로 게이지만 보여주기
 							['co', 'no', 'no2', 'o3', 'so2', 'pm2_5', 'pm10', 'nh3'].map((parameter, index) => (
-								<View key={index} style={styles.airQualityGridItem}>
-									<Text style={styles.airQualityParameter}>{parameter}</Text>
-									<Text style={styles.airQualityValue}>N/A</Text>
-									<View style={styles.gaugeContainer}>
-										<View
-											style={[
-												styles.gaugeFill,
-												{ width: '0%', backgroundColor: '#e0e0e0' },
-											]}
-										/>
-									</View>
-								</View>
+								<AirQualityItem
+									key={index}
+									parameter={parameter}
+									value="N/A"
+									status="데이터 없음"
+									fill={0}
+									color="#e0e0e0"
+								/>
 							))
 						)}
 					</View>
-				</View>
-				{/* sunTimes Information */}
 
+				</View>
+				<TouchableOpacity onPress={handleLongPress} style={styles.button}>
+					<Text style={styles.buttonText}>공기질 기준 변경</Text>
+				</TouchableOpacity>
+				{/* sunTimes Information */}
 				<View style={styles.sunTimesContainer}>
 					<View style={styles.sunContainer}>
 						<View style={styles.sunInfo}>
@@ -513,8 +539,10 @@ const WeatherScreen = () => {
 						</View>
 					</View>
 				</View>
-
 			</View>
+			<Portal>
+				<Toast />
+			</Portal>
 		</ScrollView>
 	);
 };
