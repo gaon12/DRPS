@@ -52,13 +52,23 @@ const WeatherScreen = () => {
 			try {
 				let { status } = await Location.requestForegroundPermissionsAsync();
 				if (status !== 'granted') {
-					Alert.alert('Permission Denied', 'Permission to access location was denied');
+					// 위치 권한이 거부된 경우 서울의 기본 좌표로 설정
+					const seoulLatitude = 37.5665;
+					const seoulLongitude = 126.9780;
+					setLocation({ latitude: seoulLatitude, longitude: seoulLongitude });
+					fetchCityName(seoulLatitude, seoulLongitude);
+					fetchWeather(seoulLatitude, seoulLongitude);
+					fetchAirQuality(seoulLatitude, seoulLongitude);
+					const sunTimes = calculateSunTimes(seoulLatitude, seoulLongitude);
+					setSunTimes(sunTimes);
+					setCity('서울'); // 서울로 기본 도시 이름 설정
+					setLoading(false);
 					return;
 				}
-
+	
 				const lastKnownLocation = await Location.getLastKnownPositionAsync({});
 				const currentLocation = lastKnownLocation || await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest });
-
+	
 				if (currentLocation) {
 					const { latitude, longitude } = currentLocation.coords;
 					setLocation(currentLocation.coords);
@@ -73,7 +83,7 @@ const WeatherScreen = () => {
 				setLoading(false);
 			}
 		};
-
+	
 		fetchLocationAndWeather();
 	}, []);
 
