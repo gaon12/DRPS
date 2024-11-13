@@ -13,4 +13,3 @@ try {
     die("DB 연결 실패: " . $e->getMessage());
 }
 ?>
-
