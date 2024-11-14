@@ -161,7 +161,7 @@ const SettingsScreen = () => {
 					<List.Item
 						title="Server Uptime Check"
 						left={() => <IconButton icon="server" color={iconColor} />}
-						onPress={() => openURL('https://www.naver.com')}
+						onPress={() => openURL('https://stats.uptimerobot.com/LJ1FXViirt')}
 						titleStyle={isDarkMode ? styles.darkText : styles.lightText}
 					/>
 				</List.Section>

@@ -16,30 +16,29 @@ const MainScreen = ({ navigation }) => {
 
   // 재난 정보와 매핑되는 ID 리스트
   const modalDataList = [
-    { id: '1', mappingId: '01001', title: '태풍', icon: 'weather-hurricane', iconType: 'MaterialCommunityIcons' },
-    { id: '2', mappingId: '01002', title: '홍수', icon: 'water', iconType: 'Ionicons' },
-    { id: '3', mappingId: '01003', title: '호우', icon: 'rainy-outline', iconType: 'Ionicons' },
-    { id: '4', mappingId: '01004', title: '강풍', icon: 'weather-windy', iconType: 'MaterialCommunityIcons' },
-    { id: '5', mappingId: '01005', title: '대설', icon: 'weather-snowy-heavy', iconType: 'MaterialCommunityIcons' },
-    { id: '6', mappingId: '01006', title: '한파', icon: 'snow', iconType: 'Ionicons' },
-    { id: '7', mappingId: '01007', title: '풍랑', icon: 'waves', iconType: 'MaterialCommunityIcons' },
-    { id: '8', mappingId: '01008', title: '황사', icon: 'weather-dust', iconType: 'MaterialCommunityIcons' },
-    { id: '9', mappingId: '01009', title: '폭염', icon: 'sunny-outline', iconType: 'Ionicons' },
-    { id: '10', mappingId: '01010', title: '가뭄', icon: 'sunny', iconType: 'Ionicons' },
+    { id: '1', mappingId: '01001', title: '가뭄', icon: 'sunny', iconType: 'Ionicons' },
+    { id: '2', mappingId: '01002', title: '강풍', icon: 'weather-windy', iconType: 'MaterialCommunityIcons' },
+    { id: '3', mappingId: '01003', title: '낙뢰', icon: 'thunderstorm-outline', iconType: 'Ionicons' },
+    { id: '4', mappingId: '01004', title: '대설', icon: 'weather-snowy-heavy', iconType: 'MaterialCommunityIcons' },
+    { id: '5', mappingId: '01005', title: '산사태', icon: 'terrain', iconType: 'MaterialCommunityIcons' },
+    { id: '6', mappingId: '01006', title: '우주전파재난', icon: 'radio', iconType: 'Ionicons' },
+    { id: '7', mappingId: '01007', title: '자연우주물체추락', icon: 'planet', iconType: 'Ionicons' },
+    { id: '8', mappingId: '01008', title: '적조', icon: 'leaf', iconType: 'Ionicons' },
+    { id: '9', mappingId: '01009', title: '조류대발생(녹조)', icon: 'leaf', iconType: 'Ionicons' },
+    { id: '10', mappingId: '01010', title: '조수', icon: 'water', iconType: 'Ionicons' },
     { id: '11', mappingId: '01011', title: '지진', icon: 'earthquake', iconType: 'MaterialCommunityIcons' },
     { id: '12', mappingId: '01012', title: '지진해일', icon: 'water', iconType: 'Ionicons' },
-    { id: '13', mappingId: '01013', title: '해일', icon: 'water', iconType: 'Ionicons' },
-    { id: '14', mappingId: '01014', title: '산사태', icon: 'terrain', iconType: 'MaterialCommunityIcons' },
-    { id: '15', mappingId: '01015', title: '화산폭발', icon: 'volcano', iconType: 'MaterialCommunityIcons' },
-    { id: '16', mappingId: '01016', title: '침수', icon: 'flood', iconType: 'MaterialIcons' },
-    { id: '17', mappingId: '01017', title: '낙뢰', icon: 'thunderstorm-outline', iconType: 'Ionicons' },
-
-    { id: '18', title: '산사태', icon: 'water', iconType: 'Ionicons' },
-    { id: '19', title: '자연우주물체추락', icon: 'planet', iconType: 'Ionicons' },
-    { id: '20', title: '우주전파재난', icon: 'radio', iconType: 'Ionicons' },
-    { id: '21', title: '조류대발생(녹조)', icon: 'leaf', iconType: 'Ionicons' },
-    { id: '22', title: '적조', icon: 'leaf', iconType: 'Ionicons' },
-  ];
+    { id: '13', mappingId: '01013', title: '침수', icon: 'flood', iconType: 'MaterialIcons' },
+    { id: '14', mappingId: '01014', title: '태풍', icon: 'weather-hurricane', iconType: 'MaterialCommunityIcons' },
+    { id: '15', mappingId: '01015', title: '폭염', icon: 'sunny-outline', iconType: 'Ionicons' },
+    { id: '16', mappingId: '01016', title: '풍랑', icon: 'waves', iconType: 'MaterialCommunityIcons' },
+    { id: '17', mappingId: '01017', title: '한파', icon: 'snow', iconType: 'Ionicons' },
+    { id: '18', mappingId: '01018', title: '해일', icon: 'water', iconType: 'Ionicons' },
+    { id: '19', mappingId: '01019', title: '호우', icon: 'rainy-outline', iconType: 'Ionicons' },
+    { id: '20', mappingId: '01020', title: '홍수', icon: 'water', iconType: 'Ionicons' },
+    { id: '21', mappingId: '01021', title: '화산폭발', icon: 'volcano', iconType: 'MaterialCommunityIcons' },
+    { id: '22', mappingId: '01022', title: '황사', icon: 'weather-dust', iconType: 'MaterialCommunityIcons' },
+];
 
   const allDisastersList = modalDataList.map(({ id, title }) => ({ id, title }));
 

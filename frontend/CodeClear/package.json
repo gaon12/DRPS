@@ -50,7 +50,8 @@
     "react-native-tab-view": "^3.5.2",
     "react-native-toast-message": "^2.2.0",
     "react-native-webview": "13.8.6",
-    "suncalc": "^1.9.0"
+    "suncalc": "^1.9.0",
+    "expo-image": "~1.13.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
