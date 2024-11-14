@@ -17,7 +17,7 @@
     "@react-navigation/stack": "^6.4.1",
     "axios": "^1.7.7",
     "Buffer": "^0.0.0",
-    "expo": "^51.0.32",
+    "expo": "^52.0.6",
     "expo-av": "~14.0.7",
     "expo-clipboard": "~6.0.3",
     "expo-image-picker": "^15.0.7",
