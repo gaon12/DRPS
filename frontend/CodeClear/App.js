@@ -8,6 +8,8 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import VersionInfo from './tabs/Settings/pages/VersionInfo';
 import LabsScreen from './tabs/Settings/pages/Labs/index';
 import CallScreen from './tabs/Settings/pages/Emergency/page';
+import CprScreen from './tabs/Settings/pages/Emergency/CPRSteps';
+import CprPracticeScreen from './tabs/Settings/pages/Emergency/CprPractice';
 import NewsDetail from './tabs/News/tabs/News/NewsDetail';
 import ContributorList from './tabs/Settings/pages/VersionInfo/ContributorList';
 import PatchNotes from './tabs/Settings/pages/VersionInfo/PatchNotes';
@@ -95,6 +97,18 @@ const App = () => {
 							name="CallScreen"
 							component={CallScreen}
 							options={{ title: 'Calls Screen' }} // 상단 타이틀 설정
+						/>
+						{/* 심폐소생술 화면 */}
+						<Stack.Screen
+							name="CprScreen"
+							component={CprScreen}
+							options={{ title: 'Cprs Screen' }} // 상단 타이틀 설정
+						/>
+						{/* 심폐소생술 실습 화면 */}
+						<Stack.Screen
+							name="CprPracticeScreen"
+							component={CprPracticeScreen}
+							options={{ title: 'Cprs Pratice Screen' }} // 상단 타이틀 설정
 						/>
 						{/* 버전 정보 화면 */}
 						<Stack.Screen
