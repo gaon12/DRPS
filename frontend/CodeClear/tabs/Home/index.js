@@ -228,6 +228,9 @@ const App = () => {
                 <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('CallScreen')} >
                     <Text style={styles.cardText}>재난 신고하기</Text>
                 </TouchableOpacity>
+                <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('CprScreen')} >
+                    <Text style={styles.cardText}>심폐소생술</Text>
+                </TouchableOpacity>
             </ScrollView>
             <Text style={styles.sectionTitle}>기타</Text>
             <ScrollView 

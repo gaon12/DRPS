@@ -54,6 +54,42 @@ const CallScreen = () => {
     }
   };
 
+  const handleReport = async (type) => {
+    let message = '';
+    let phoneNumber = '';
+  
+    switch (type) {
+      case '범죄':
+        message = '범죄 신고 요청: 위급 상황입니다. 빠른 대처 부탁드립니다.';
+        phoneNumber = '112'; // 범죄 신고 번호
+        break;
+      case '화재':
+        message = '화재 신고 요청: 화재 발생, 긴급 조치 부탁드립니다.';
+        phoneNumber = '119'; // 화재 신고 번호
+        break;
+      case '구조/구급':
+        message = '구조/구급 요청: 응급 상황 발생, 빠른 지원 부탁드립니다.';
+        phoneNumber = '119'; // 구조/구급 신고 번호
+        break;
+      case '해양사고':
+        message = '해양사고 신고 요청: 긴급 구조 필요.';
+        phoneNumber = '110'; // 해양 사고 신고 번호
+        break;
+      default:
+        Alert.alert('오류', '잘못된 신고 유형입니다.');
+        return;
+    }
+  
+    sendSMS(message, phoneNumber);
+  };
+  
+  const sendSMS = (message, phoneNumber) => {
+    const url = `sms:${phoneNumber}?body=${encodeURIComponent(message)}`;
+    Linking.openURL(url).catch(() => {
+      Alert.alert('오류', '문자 메시지를 보낼 수 없습니다.');
+    });
+  };
+
   const stopRecordingAndReport = async () => {
     console.log('녹음 종료 및 신고');
     setShowModal(false); // Modal 숨기기

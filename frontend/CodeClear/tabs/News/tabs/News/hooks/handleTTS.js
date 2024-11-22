@@ -1,4 +1,3 @@
-// ./hooks/handleTTS.js
 import * as Speech from "expo-speech";
 import { Audio } from 'expo-av';
 
@@ -7,10 +6,10 @@ const TTS_API_BASE = 'https://api.gaon.xyz/tts';
 export const handleTTS = async (isSpeaking, setIsSpeaking, newsData, settings) => {
   if (isSpeaking) {
     // TTS 중지
-    if (settings.ttsOption.ttsService) {
-      await stopTTS();  // 서버 TTS 중지
+    if (settings.ttsService) {
+      await stopTTS(); // 서버 TTS 중지
     } else {
-      Speech.stop();    // 로컬 TTS 중지
+      Speech.stop(); // 로컬 TTS 중지
     }
     setIsSpeaking(false);
     console.log("TTS stopped.");
@@ -23,13 +22,14 @@ export const handleTTS = async (isSpeaking, setIsSpeaking, newsData, settings) =
       .map(item => item.text)
       .join("\n");
 
-    if (settings.ttsOption.ttsService) {
-      // 서버 TTS 사용
-      await handleServerTTS(content, settings, setIsSpeaking);
-    } else {
+    // TTS 서비스와 언어 설정 확인
+    const ttsService = settings.ttsService || 'gtts'; // 기본값으로 'gtts' 사용
+    const language = settings.language || 'ko-KR'; // 기본값으로 'ko-KR' 사용
+
+    if (ttsService === 'gtts') {
       // 로컬 TTS 사용
       Speech.speak(content, {
-        language: settings.language,
+        language,
         onDone: () => setIsSpeaking(false),
         onError: (error) => {
           console.error("로컬 TTS 오류:", error);
@@ -38,43 +38,27 @@ export const handleTTS = async (isSpeaking, setIsSpeaking, newsData, settings) =
       });
       setIsSpeaking(true);
       console.log("로컬 TTS started.");
+    } else {
+      // 서버 TTS 사용
+      await handleServerTTS(content, { ttsService, language }, setIsSpeaking);
     }
   } catch (error) {
-    console.error('TTS 처리 중 오류 발생:', error);
+    console.error("TTS 처리 중 오류 발생:", error);
     setIsSpeaking(false);
     throw error;
   }
 };
 
 // 서버 TTS 처리 함수
-const handleServerTTS = async (content, settings, setIsSpeaking) => {
+const handleServerTTS = async (content, { ttsService, language }, setIsSpeaking) => {
   try {
-    const { language: currentLanguage, ttsOption } = settings;
-    const { ttsService, language: ttsLanguages } = ttsOption;
-    let selectedVoice;
-
-    // TTS 서비스에 따른 음성 선택 분기 처리
-    if (ttsService === 'edgetts') {
-      selectedVoice = ttsLanguages[currentLanguage];
-      if (!selectedVoice) {
-        console.warn(`Edge TTS에 대한 언어 설정이 없습니다: ${currentLanguage}`);
-        return;
-      }
-    } else if (ttsService === 'gtts') {
-      selectedVoice = currentLanguage; // Google TTS는 기본 언어 코드 사용
-    } else {
-      console.warn(`지원되지 않는 TTS 서비스: ${ttsService}`);
-      return;
-    }
-
-    // API 요청 URL 생성
-    const url = `${TTS_API_BASE}?action=tts&service=${ttsService}&text=${encodeURIComponent(content)}&language=${selectedVoice}`;
+    const url = `${TTS_API_BASE}?action=tts&service=${ttsService}&text=${encodeURIComponent(content)}&language=${language}`;
     console.log(`TTS 요청 URL: ${url}`);
 
     const response = await fetch(url);
     const result = await response.json();
 
-    if (result.StatusCode === 200 && result.data.audio) {
+    if (result.StatusCode === 200 && result.data?.audio) {
       const base64Audio = result.data.audio;
 
       // Audio 권한 요청 및 설정
@@ -101,17 +85,17 @@ const handleServerTTS = async (content, settings, setIsSpeaking) => {
 
         await soundObject.playAsync();
         setIsSpeaking(true);
-        console.log(`서버 TTS started with service: ${ttsService}, voice: ${selectedVoice}`);
+        console.log(`서버 TTS started with service: ${ttsService}, language: ${language}`);
       } catch (error) {
-        console.error('오디오 재생 중 오류:', error);
+        console.error("오디오 재생 중 오류:", error);
         await soundObject.unloadAsync();
         setIsSpeaking(false);
       }
     } else {
-      throw new Error('TTS API 응답이 올바르지 않습니다.');
+      throw new Error("TTS API 응답이 올바르지 않습니다.");
     }
   } catch (error) {
-    console.error('서버 TTS 처리 중 오류 발생:', error);
+    console.error("서버 TTS 처리 중 오류 발생:", error);
     setIsSpeaking(false);
     throw error;
   }
@@ -120,9 +104,30 @@ const handleServerTTS = async (content, settings, setIsSpeaking) => {
 // 서버 TTS 중지 함수 - stopTTS로 내보내기
 export const stopTTS = async () => {
   try {
+    // 로컬 TTS 중지
+    Speech.stop();
+
+    // 서버 TTS 중지 - Audio 권한 초기화
     await Audio.setIsEnabledAsync(false);
     await Audio.setIsEnabledAsync(true);
+
+    console.log("TTS 중지 완료.");
   } catch (error) {
-    console.error('서버 TTS 중지 중 오류:', error);
+    console.error("TTS 중지 중 오류:", error);
   }
 };
+
+export const stopTTSAndWait = async () => {
+  return new Promise((resolve, reject) => {
+    stopTTS()
+      .then(() => {
+        console.log("TTS 중단 완료 후 처리됨.");
+        resolve();
+      })
+      .catch((error) => {
+        console.error("TTS 중단 중 오류:", error);
+        reject(error);
+      });
+  });
+};
+
