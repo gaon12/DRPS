@@ -7,7 +7,8 @@ import Tabs from './tabs';
 import { Provider as PaperProvider } from 'react-native-paper';
 import VersionInfo from './tabs/Settings/pages/VersionInfo';
 import LabsScreen from './tabs/Settings/pages/Labs/index';
-import CallScreen from './tabs/Settings/pages/Emergency/page';
+import CallScreen from './tabs/Settings/pages/Emergency/CallScreen';
+import DisasterReport from './tabs/Settings/pages/Emergency/DisasterReport';
 import CprScreen from './tabs/Settings/pages/Emergency/CPRSteps';
 import CprPracticeScreen from './tabs/Settings/pages/Emergency/CprPractice';
 import NewsDetail from './tabs/News/tabs/News/NewsDetail';
@@ -91,12 +92,18 @@ const App = () => {
 							name="LabsScreen"
 							component={LabsScreen}
 							options={{ title: 'Labs Screen' }} // 상단 타이틀 설정
-						/>
+						/> 
 						{/* 재난 신고 화면 */}
 						<Stack.Screen
 							name="CallScreen"
 							component={CallScreen}
-							options={{ title: 'Calls Screen' }} // 상단 타이틀 설정
+							options={{ title: '재난 신고 페이지' }} // 상단 타이틀 설정
+						/>
+						{/* 재난 신고 양식 화면 */}
+						<Stack.Screen
+							name="DisasterReport"
+							component={DisasterReport}
+							options={{ title: '재난 신고 양식 페이지' }} // 상단 타이틀 설정
 						/>
 						{/* 심폐소생술 화면 */}
 						<Stack.Screen
@@ -167,7 +174,6 @@ const App = () => {
 						{/* 피난시뮬레이션 관련 */}
 						<Stack.Screen name="EvacwithAddress" component={EvacwithAddress} />
 						<Stack.Screen name="EvacwithMap" component={EvacwithMap} />
-
 						<Stack.Screen name="ExamplePage" component={ExamplePage} />
 
 					</Stack.Navigator>
