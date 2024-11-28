@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Modal, TextInput, Pressable, Alert } from 'react-native';
 
 const styles = StyleSheet.create({
   container: {
@@ -118,26 +118,33 @@ const CprStep0 = ({ onModeSelect }) => {
         <Text style={styles.RealText}>실전</Text>
       </TouchableOpacity>
 
-      <Modal visible={modalVisible} transparent={true} animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>반복 횟수를 입력하세요</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="number-pad"
-              value={inputValue}
-              onChangeText={(text) => setInputValue(text.replace(/[^0-9]/g, ''))}
-              placeholder="숫자 입력"
-              placeholderTextColor="#999"
-            />
-            <View style={styles.buttonRow}>
-              <Pressable style={styles.modalButton} onPress={handleConfirm}>
-                <Text style={styles.modalButtonText}>확인</Text>
-              </Pressable>
-            </View>
-          </View>
+      <Modal
+  visible={modalVisible}
+  transparent={true}
+  animationType="slide"
+  onRequestClose={() => setModalVisible(false)} // Android Back 버튼 대응
+>
+  <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+    <View style={styles.modalContainer}>
+      <View style={styles.modalContent}>
+        <Text style={styles.modalTitle}>반복 횟수를 입력하세요</Text>
+        <TextInput
+          style={styles.input}
+          keyboardType="number-pad"
+          value={inputValue}
+          onChangeText={(text) => setInputValue(text.replace(/[^0-9]/g, ''))}
+          placeholder="숫자 입력"
+          placeholderTextColor="#999"
+        />
+        <View style={styles.buttonRow}>
+          <Pressable style={styles.modalButton} onPress={handleConfirm}>
+            <Text style={styles.modalButtonText}>확인</Text>
+          </Pressable>
         </View>
-      </Modal>
+      </View>
+    </View>
+  </TouchableWithoutFeedback>
+</Modal>
     </View>
   );
 };
