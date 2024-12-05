@@ -422,13 +422,15 @@ const WeatherScreen = () => {
 					<Text style={[styles.date, styles.dateLeft]}>{date}</Text>
 				</View>
 				<View style={styles.weatherInfoContainer}>
-					<Text style={styles.city}>{city}</Text>
-					<Text style={styles.temperature}>{currentWeather.temperature}°C</Text>
-					<Text style={styles.condition}>{currentWeather.condition}</Text>
-					{useOpenWeatherIcon
-						? getOpenWeatherIcon(currentWeather.icon)
-						: getWeatherIcon(currentWeather.icon)}
-				</View>
+    <Text style={styles.city}>{city}</Text>
+    <Text style={styles.temperature}>{currentWeather.temperature}°C</Text>
+    <Text style={styles.condition}>{currentWeather.condition}</Text>
+    <View style={styles.iconContainer}>
+        {useOpenWeatherIcon
+            ? getOpenWeatherIcon(currentWeather.icon)
+            : getWeatherIcon(currentWeather.icon)}
+    </View>
+</View>
 				<View style={styles.additionalInfoContainerHorizontal}>
 					<View style={[styles.infoItemHorizontalWithFlex, styles.divider]}>
 						<Feather name="thermometer" size={24} color="white" />
@@ -459,7 +461,7 @@ const WeatherScreen = () => {
 					</View>
 					<View style={styles.infoItemHorizontalWithFlex}>
 						<Feather name="wind" size={24} color="white" />
-						<Text style={styles.infoText}>{currentWeather.wind_speed !== null ? `${currentWeather.wind_speed} m/s` : '정보 없음'}</Text>
+						<Text style={styles.infowindText}>{currentWeather.wind_speed !== null ? `${currentWeather.wind_speed} m/s` : '정보 없음'}</Text>
 						<Text style={styles.infoText1}>풍속</Text>
 					</View>
 				</View>
@@ -562,6 +564,12 @@ const styles = StyleSheet.create({
 		flexGrow: 1,
 		backgroundColor: '#4a90e2'
 	},
+	iconContainer: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		height: 60,  // 아이콘의 높이를 고정
+		width: '100%'
+	},
 	weathercontainer:
 	{
 		padding: 23
@@ -630,7 +638,13 @@ const styles = StyleSheet.create({
 		color: 'white',
 		marginTop: 10,
 	},
-	infoText1: {
+	infowindText: {
+		fontSize: 16,
+		color: 'white',
+		marginTop: 10,
+		marginLeft: 5
+	},
+	infoText1: {	
 		fontSize: 16,
 		color: 'white',
 		marginTop: 5,
@@ -775,5 +789,7 @@ const styles = StyleSheet.create({
 		marginBottom: 5,
 	}
 });
+
+
 
 export default WeatherScreen;
