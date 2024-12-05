@@ -196,19 +196,19 @@ const App = () => {
                 showsHorizontalScrollIndicator={false} 
                 contentContainerStyle={styles.gridHorizontal}
             >
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('NaturalDisasters')}>
                     <Icon name="earth-outline" size={40} color="#A0D6E0" /> 
                     <Text style={styles.cardText}>자연 재난</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('SocialDisasters')}>
                     <Icon name="alert-circle-outline" size={40} color="#FFD700" /> 
                     <Text style={styles.cardText}>사회 재난</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('LifeDisasters')}>
                     <Icon name="sunny-outline" size={40} color="#82E682" /> 
                     <Text style={styles.cardText}>생활 재난</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('EmergencyDisasters')}>
                     <Icon name="medical-outline" size={40} color="#FFB6C1" /> 
                     <Text style={styles.cardText}>비상 재난</Text>
                 </TouchableOpacity>
