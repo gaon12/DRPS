@@ -28,7 +28,7 @@ const images = {
   '01022.png': require('./icon_pic/NaturalDisasters/01022.png'),
 };
 
-const MainScreen = ({ navigation }) => {
+const NaturalDisasters = ({ navigation }) => {
   const [showList, setShowList] = useState(false); // 전체보기 리스트 표시 여부
   const [showModal, setShowModal] = useState(false); // 모달 표시 상태
   const [searchText, setSearchText] = useState('');
@@ -242,6 +242,4 @@ const MainScreen = ({ navigation }) => {
   );
 };
 
-
-
-export default MainScreen;
+export default NaturalDisasters;

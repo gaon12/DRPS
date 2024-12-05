@@ -222,8 +222,8 @@ const App = () => {
                 <TouchableOpacity style={styles.card}>
                     <Text style={styles.cardText}>체크 리스트</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.card}>
-                    <Text style={styles.cardText}>피난 시뮬레이션</Text>
+                <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Map')}>
+                    <Text style={styles.cardText}>피난 경로 확인</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('CallScreen')} >
                     <Text style={styles.cardText}>재난 신고하기</Text>
