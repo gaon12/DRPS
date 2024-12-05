@@ -88,10 +88,10 @@ const ActionGuidelines = ({ navigation }) => {
 
                 <TouchableOpacity
                   style={styles.button}
-                  onPress={() => navigation.navigate('EvacMain')} // '피난 시뮬레이션' 페이지로 이동
+                  onPress={() => navigation.navigate('Map')} // '피난 시뮬레이션' 페이지로 이동
                 >
                   <FontAwesome5 name="running" size={40} color="white" />
-                  <Text style={styles.buttonText}>피난 시뮬레이션</Text>
+                  <Text style={styles.buttonText}>피난 경로 확인</Text>
                 </TouchableOpacity>
               </View>
             </View>
