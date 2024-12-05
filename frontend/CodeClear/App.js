@@ -8,6 +8,7 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import VersionInfo from './tabs/Settings/pages/VersionInfo';
 import LabsScreen from './tabs/Settings/pages/Labs/index';
 import CallScreen from './tabs/Settings/pages/Emergency/CallScreen';
+import ImageReportScreen from './tabs/Settings/pages/Emergency/ImageReportScreen';
 import DisasterReport from './tabs/Settings/pages/Emergency/DisasterReport';
 import CprScreen from './tabs/Settings/pages/Emergency/CPRSteps';
 import CprPracticeScreen from './tabs/Settings/pages/Emergency/CprPractice';
@@ -98,6 +99,12 @@ const App = () => {
 							name="CallScreen"
 							component={CallScreen}
 							options={{ title: '재난 신고 페이지' }} // 상단 타이틀 설정
+						/>
+						{/* 재난 그림 신고화면 */}
+						<Stack.Screen
+							name="ImageReportScreen"
+							component={ImageReportScreen}
+							options={{ title: '재난 그림 신고 페이지' }} // 상단 타이틀 설정
 						/>
 						{/* 재난 신고 양식 화면 */}
 						<Stack.Screen

@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Linking, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Linking, Modal } from 'react-native';
 import { AntDesign, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F0F4F8', padding: 16 },
@@ -23,36 +22,44 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 20 },
   callButton: { padding: 15, borderRadius: 10, width: '45%', alignItems: 'center' },
   callButtonText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
+  modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   modalContent: {
-    width: 300,
-    padding: 20,
     backgroundColor: 'white',
+    padding: 20,
     borderRadius: 10,
     alignItems: 'center',
+    width: '80%',
   },
-  modalText: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
-  modalCountdown: { fontSize: 24, fontWeight: 'bold', color: '#FF3B30' },
-  imagePreviewContainer: { alignItems: 'center', marginTop: 20 },
-  imagePreviewText: { fontSize: 16, fontWeight: 'bold' },
-  imagePreview: { width: 200, height: 200, resizeMode: 'contain', marginTop: 10 },
+  modalButton: { marginTop: 10, padding: 15, borderRadius: 10, backgroundColor: '#007BFF', width: '100%' },
+  modalButtonText: { color: 'white', fontSize: 16, textAlign: 'center' },
+  modalCloseButton: { marginTop: 20, padding: 15, borderRadius: 10, backgroundColor: '#FF6F61', width: '100%' },
 });
 
-const CallScreen = () => {
-  const intervalRef = useRef(null);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const navigation = useNavigation();
+const ReportModal = ({ visible, onClose, onCall, onWeb, showWebOption }) => (
+  <Modal transparent={true} visible={visible} animationType="fade">
+    <View style={styles.modalContainer}>
+      <View style={styles.modalContent}>
+        <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 20 }}>신고 방법을 선택하세요</Text>
+        <TouchableOpacity style={styles.modalButton} onPress={onCall}>
+          <Text style={styles.modalButtonText}>전화로 신고</Text>
+        </TouchableOpacity>
+        {showWebOption && ( // This line ensures web option is only shown when showWebOption is true
+          <TouchableOpacity style={styles.modalButton} onPress={onWeb}>
+            <Text style={styles.modalButtonText}>웹으로 신고</Text>
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity style={styles.modalCloseButton} onPress={onClose}>
+          <Text style={styles.modalButtonText}>닫기</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </Modal>
+);
 
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
+const CallScreen = () => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedNumber, setSelectedNumber] = useState(null);
+  const navigation = useNavigation();
 
   const makeCall = (number) => {
     const url = `tel:${number}`;
@@ -61,30 +68,19 @@ const CallScreen = () => {
     });
   };
 
-  const pickImageAndCall = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert('권한 필요', '이미지 선택을 위해 갤러리 접근 권한이 필요합니다.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: false,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
-      Alert.alert('이미지 선택됨', '선택한 이미지로 전화 신고를 진행합니다.');
-      makeCall('112');
-    }
+  const openWeb = (number) => {
+    Alert.alert('웹 신고', `${number} 웹 신고 페이지로 이동합니다.`);
   };
 
-  const ReportButton = ({ type, color, icon }) => (
+  const handleFooterButtonPress = (number) => {
+    setSelectedNumber(number);
+    setModalVisible(true);
+  };
+
+  const ReportButton = ({ type, color, icon, number }) => (
     <TouchableOpacity
       style={[styles.button, { backgroundColor: color }]}
-      onPress={() => navigation.navigate('DisasterReport', { reportType: type, selectedImage })}
+      onPress={() => navigation.navigate('DisasterReport', { reportType: type, reportNumber: number })}
     >
       {icon}
       <Text style={styles.buttonText}>{type}</Text>
@@ -109,31 +105,75 @@ const CallScreen = () => {
       <Text style={styles.header}>신고 유형을 선택하여 문자 신고</Text>
 
       <View style={styles.row}>
-        <ReportButton type="범죄" color="#FA5858" icon={<AntDesign name="warning" size={40} color="white" />} />
-        <ReportButton type="화재" color="#DF0101" icon={<MaterialIcons name="fire-extinguisher" size={40} color="white" />} />
+        <ReportButton
+          type="범죄"
+          color="#FA5858"
+          icon={<AntDesign name="warning" size={40} color="white" />}
+          number="112"
+        />
+        <ReportButton
+          type="화재"
+          color="#DF0101"
+          icon={<MaterialIcons name="fire-extinguisher" size={40} color="white" />}
+          number="119"
+        />
       </View>
 
       <View style={styles.row}>
-        <ReportButton type="구조/구급" color="#31B404" icon={<FontAwesome5 name="first-aid" size={40} color="white" />} />
-        <ReportButton type="해양사고" color="#01A9DB" icon={<FontAwesome5 name="ship" size={40} color="white" />} />
+        <ReportButton
+          type="구조/구급"
+          color="#31B404"
+          icon={<FontAwesome5 name="first-aid" size={40} color="white" />}
+          number="119"
+        />
+        <ReportButton
+          type="해양사고"
+          color="#01A9DB"
+          icon={<FontAwesome5 name="ship" size={40} color="white" />}
+          number="122"
+        />
       </View>
 
       <View style={styles.extraOptions}>
-        <SmallButton label="그림을 선택하여 신고" icon="picture" onPress={pickImageAndCall} />
-        <SmallButton label="민원상담은 110" icon="phone" onPress={() => makeCall('110')} />
+        <SmallButton
+          label="그림 신고 화면으로 이동"
+          icon="picture"
+          onPress={() => navigation.navigate('ImageReportScreen')}
+        />
+
+        <SmallButton
+          label="민원상담은 110"
+          icon="phone"
+          onPress={() => makeCall('110')}
+        />
       </View>
 
       <View style={styles.footer}>
-        <FooterButton label="112 전화신고" color="#013ADF" onPress={() => makeCall('112')} />
-        <FooterButton label="119 전화신고" color="#DF0101" onPress={() => makeCall('119')} />
+        <FooterButton
+          label="112 전화신고"
+          color="#013ADF"
+          onPress={() => handleFooterButtonPress('112')}
+        />
+        <FooterButton
+          label="119 전화신고"
+          color="#DF0101"
+          onPress={() => handleFooterButtonPress('119')}
+        />
       </View>
 
-      {selectedImage && (
-        <View style={styles.imagePreviewContainer}>
-          <Text style={styles.imagePreviewText}>선택한 이미지:</Text>
-          <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
-        </View>
-      )}
+      <ReportModal
+  visible={modalVisible}
+  onClose={() => setModalVisible(false)}
+  onCall={() => {
+    setModalVisible(false);
+    makeCall(selectedNumber);
+  }}
+  onWeb={() => {
+    setModalVisible(false);
+    openWeb(selectedNumber);
+  }}
+  showWebOption={selectedNumber !== '112'} // 이 부분이 중요합니다
+/>
     </ScrollView>
   );
 };

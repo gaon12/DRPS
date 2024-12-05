@@ -6,11 +6,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import * as SMS from 'expo-sms';
 
 const DisasterReport = ({ route, navigation }) => {
-  const { reportType } = route.params;
+  const { reportType, reportNumber } = route.params; // reportNumber 추가
   const [message, setMessage] = useState('');
 
   const sendMessage = async () => {
@@ -25,30 +27,30 @@ const DisasterReport = ({ route, navigation }) => {
       return;
     }
 
-    const { result } = await SMS.sendSMSAsync(['112'], message.trim());
+    const { result } = await SMS.sendSMSAsync([reportNumber], message.trim()); // reportNumber 사용
     if (result === 'sent') {
       Alert.alert('성공', '신고가 전송되었습니다.');
       setMessage(''); // 메시지 초기화
       navigation.goBack();
-    } else {
-      Alert.alert('실패', '신고 전송에 실패했습니다.');
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>{reportType} 신고</Text>
-      <TextInput
-        style={styles.textInput}
-        placeholder="신고 내용을 입력하세요"
-        value={message}
-        onChangeText={setMessage}
-        multiline
-      />
-      <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-        <Text style={styles.sendButtonText}>신고 전송</Text>
-      </TouchableOpacity>
-    </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <Text style={styles.header}>{reportType} 신고</Text>
+        <TextInput
+          style={styles.textInput}
+          placeholder="신고 내용을 입력하세요"
+          value={message}
+          onChangeText={setMessage}
+          multiline
+        />
+        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+          <Text style={styles.sendButtonText}>신고 전송</Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
