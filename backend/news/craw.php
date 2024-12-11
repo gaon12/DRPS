@@ -27,17 +27,7 @@ if (!$apiKey) {
 }
 
 // db_config.php 불러오기
-require '../db/db_config.php';
-
-try {
-    // PDO 객체 생성 및 연결
-    $pdo = new PDO($dsn, $dbConfig['username'], $dbConfig['password'], [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    ]);
-} catch (PDOException $e) {
-    die("DB Connection failed: " . $e->getMessage());
-}
+require '../db/db_config.php'; // 이 파일에서 이미 $pdo 객체를 생성
 
 // pageNo를 1부터 시작
 $pageNo = 1;
