@@ -208,6 +208,7 @@ const SettingsScreen = () => {
 						left={() => <IconButton icon="gift-outline" color={iconColor} />}
 						titleStyle={isDarkMode ? styles.darkText : styles.lightText}
 						descriptionStyle={isDarkMode ? styles.darkDescription : styles.lightDescription}
+						onPress={() => openURL('https://github.com/gaon12/DRPS')}
 					/>
 					<List.Item
 						title="Language"
@@ -234,6 +235,7 @@ const SettingsScreen = () => {
 						title="GitHub/Discord Links"
 						left={() => <IconButton icon="github" color={iconColor} />}
 						titleStyle={isDarkMode ? styles.darkText : styles.lightText}
+						onPress={() => openURL('https://github.com/gaon12/DRPS')}
 					/>
 					<List.Item
 						title="Backup Data"

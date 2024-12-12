@@ -35,21 +35,22 @@ const MyCardGrid = () => {
     setExpandedCard(expandedCard === id ? null : id);
   };
 
-  const handleNavigate = () => {
-    navigation.navigate('ExamplePage');
+  const handleNavigate = (title) => {
+    return () => {
+      switch (title) {
+        case '식수 확보':
+          navigation.navigate('ExamplePage2');
+          break;
+        case '불 피우기':
+          navigation.navigate('ExamplePage3');
+          break;
+        default:
+          navigation.navigate('ExamplePage');
+          break;
+      }
+    };
   };
-
-  const cardData = [
-    { title: '매듭법', description: 'This is description for card 1.', image: require('./icon_pic/SurvivalSkills/rope.webp') },
-    { title: '식수 확보', description: 'This is description for card 2.', image: require('./icon_pic/SurvivalSkills/water.webp') },
-    { title: '불 피우기', description: 'This is description for card 3.', image: require('./icon_pic/SurvivalSkills/fire.webp') },
-    { title: '응급 처치', description: 'This is description for card 4.', image: require('./icon_pic/SurvivalSkills/emergencybag.webp') },
-    { title: '방향 찾기', description: 'This is description for card 5.', image: require('./icon_pic/SurvivalSkills/direction.webp') },
-    { title: '식품 보관', description: 'This is description for card 6.', image: require('./icon_pic/SurvivalSkills/food.webp') },
-    { title: '대피소 제작', description: 'This is description for card 7.', image: require('./icon_pic/SurvivalSkills/shelter.webp') },
-    { title: '구조 신호', description: 'This is description for card 8.', image: require('./icon_pic/SurvivalSkills/sos.webp') },
-  ];
-
+  
   const renderCards = () => {
     return cardData.map((card, index) => (
       <MyCustomCard
@@ -59,11 +60,26 @@ const MyCardGrid = () => {
         description={card.description}
         expanded={expandedCard === index}
         onPress={handleCardPress}
-        onNavigate={handleNavigate}
+        onNavigate={handleNavigate(card.title)} // 클릭 이벤트에 맞춰 실행되도록 수정
         imageSource={card.image}
       />
     ));
   };
+  
+  
+
+  const cardData = [
+    { title: '매듭법', description: '다양한 상황에 맞는 매듭법.', image: require('./icon_pic/SurvivalSkills/rope.webp') },
+    { title: '식수 확보', description: '깨끗한 물을 찾고 정화하기.', image: require('./icon_pic/SurvivalSkills/water.webp') },
+    { title: '불 피우기', description: '불을 피우고 유지하는 방법.', image: require('./icon_pic/SurvivalSkills/fire.webp') },
+    { title: '응급 처치', description: '기본적인 응급 처치 방법.', image: require('./icon_pic/SurvivalSkills/emergencybag.webp') },
+    { title: '방향 찾기', description: '길을 찾는 기본적인 기술.', image: require('./icon_pic/SurvivalSkills/direction.webp') },
+    { title: '식품 보관', description: '음식을 안전하게 보관하기.', image: require('./icon_pic/SurvivalSkills/food.webp') },
+    { title: '대피소 제작', description: '안전한 대피소 만드는 법.', image: require('./icon_pic/SurvivalSkills/shelter.webp') },
+    { title: '구조 신호', description: '구조 신호 보내는 방법.', image: require('./icon_pic/SurvivalSkills/sos.webp') },
+  ];
+
+  
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

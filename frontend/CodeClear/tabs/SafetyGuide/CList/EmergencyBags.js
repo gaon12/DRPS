@@ -163,7 +163,7 @@ const AccordionChecklist = () => {
       items: ['아기용품 가방', '기저귀', '젖병'],
     },
     {
-      title: '6',
+      title: '비상식품',
       items: ['장난감', '간식'],
     },
   ];

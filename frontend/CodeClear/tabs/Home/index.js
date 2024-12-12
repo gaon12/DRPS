@@ -5,6 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 import * as Location from 'expo-location'; // 위치 정보 가져오기 위한 import
 import axios from 'axios'; // 위치 정보에서 시, 군, 구 정보를 가져오기 위한 import
 import { SettingsContext } from '../../Context'; // Context import
+import { Linking } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 
 // Function to determine the banner size based on device type and screen dimensions
 const getBannerSize = () => {
@@ -125,6 +127,14 @@ const App = () => {
         });
     };
 
+    const openURL = async (url) => {
+		if (settings.webviewUsage) {	// 웹뷰 사용 설정을 Context에서 가져옴
+			await WebBrowser.openBrowserAsync(url);
+		} else {
+			Linking.openURL(url);
+		}
+	};
+
     const isColor = (str) => /^#[0-9A-F]{6}$/i.test(str);
 
     return (
@@ -219,17 +229,17 @@ const App = () => {
                 showsHorizontalScrollIndicator={false} 
                 contentContainerStyle={styles.gridHorizontal}
             >  
-                <TouchableOpacity style={styles.card}>
-                    <Text style={styles.cardText}>체크 리스트</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Map')}>
-                    <Text style={styles.cardText}>피난 경로 확인</Text>
+                <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('CprScreen')} >
+                    <Text style={styles.cardText}>심폐소생술</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('CallScreen')} >
                     <Text style={styles.cardText}>재난 신고하기</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('CprScreen')} >
-                    <Text style={styles.cardText}>심폐소생술</Text>
+                <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('CList')}>
+                    <Text style={styles.cardText}>체크 리스트</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Map')}>
+                    <Text style={styles.cardText}>피난 경로 확인</Text>
                 </TouchableOpacity>
             </ScrollView>
             <Text style={styles.sectionTitle}>기타</Text>
@@ -238,13 +248,13 @@ const App = () => {
                 showsHorizontalScrollIndicator={false} 
                 contentContainerStyle={styles.gridHorizontal}
             >
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity style={styles.card} onPress={() => openURL('https://www.mois.go.kr/frt/a01/frtMain.do')}>
                     <Text style={styles.cardText}>행정안전부 바로가기</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity style={styles.card} onPress={() => openURL('https://github.com/gaon12/DRPS')}>
                     <Text style={styles.cardText}>공지사항</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity style={styles.card} onPress={() => openURL('https://github.com/gaon12/DRPS')}>
                     <Text style={styles.cardText}>업데이트 내역</Text>
                 </TouchableOpacity>
             </ScrollView>

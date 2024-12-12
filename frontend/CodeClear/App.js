@@ -29,10 +29,10 @@ import CommonDisasters from './tabs/SafetyGuide/CList/CommonDisasters';
 import MyLists from './tabs/SafetyGuide/CList/MyLists';
 import EmergencyBags from './tabs/SafetyGuide/CList/EmergencyBags';
 import LocalDisasters from './tabs/SafetyGuide/CList/LocalDisasters';
-import EvacMain from './tabs/SafetyGuide/EvacSimulator/EvacMain'
-import EvacwithAddress from './tabs/SafetyGuide/EvacSimulator/EvacwithAddress'
-import EvacwithMap from './tabs/SafetyGuide/EvacSimulator/EvacwithMap'
+
 import ExamplePage from './tabs/SafetyGuide/CList/ExamplePage'
+import ExamplePage2 from './tabs/SafetyGuide/CList/ExamplePage2'
+import ExamplePage3 from './tabs/SafetyGuide/CList/ExamplePage3'
 import { SettingsProvider } from './Context';
 
 const Stack = createStackNavigator();
@@ -169,7 +169,7 @@ const App = () => {
 						/>
 						{/* 체크리스트와 피난시뮬레이션 */}
 						<Stack.Screen name="CList" component={CList} />
-						<Stack.Screen name="EvacMain" component={EvacMain} />
+					
 
 						{/* 체크리스트 관련 */}
 						<Stack.Screen name="ImportantObjects" component={ImportantObjects} />
@@ -179,9 +179,10 @@ const App = () => {
 						<Stack.Screen name="LocalDisasters" component={LocalDisasters} />
 
 						{/* 피난시뮬레이션 관련 */}
-						<Stack.Screen name="EvacwithAddress" component={EvacwithAddress} />
-						<Stack.Screen name="EvacwithMap" component={EvacwithMap} />
+						
 						<Stack.Screen name="ExamplePage" component={ExamplePage} />
+						<Stack.Screen name="ExamplePage2" component={ExamplePage2} />
+						<Stack.Screen name="ExamplePage3" component={ExamplePage3} />
 
 					</Stack.Navigator>
 				</NavigationContainer>
