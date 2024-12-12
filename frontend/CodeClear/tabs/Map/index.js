@@ -215,10 +215,13 @@ const Map = () => {
                             coordinate={{ latitude: shelter.latitude, longitude: shelter.longitude }}
                             pinColor={shelterColors[shelterIndex]}
                         >
+                            
                             <Callout onPress={() => fetchShelterDetails(shelter)}>
-                                <Text style={styles.calloutAddress}>{shelter.address}</Text>
-                                <Text style={styles.calloutDistance}>거리: {shelter.distance.toFixed(2)} m</Text>
-                                <Text>상세 정보 보려면 누르세요</Text>
+                                
+                                    <Text style={styles.calloutAddress}>{shelter.address}</Text>
+                                    <Text style={styles.calloutDistance}>거리: {shelter.distance.toFixed(2)} m</Text>
+                                    <Text>상세 정보 보려면 누르세요</Text>
+                                
                             </Callout>
                         </Marker>
                     );
